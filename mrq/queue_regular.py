@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .queue import Queue
 from . import context
 import datetime

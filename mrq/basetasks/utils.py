@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 from __future__ import print_function
+import six
 from future.utils import itervalues
 from future.builtins import str
 from mrq.task import Task
@@ -116,7 +118,7 @@ class JobAction(Task):
             # In this case we could also loose some jobs that were queued after
             # the MongoDB update. They will be "lost" and requeued later like the other case
             # after the Redis BLPOP
-            if list(query.keys()) == ["queue"] and isinstance(query["queue"], basestring):
+            if list(query.keys()) == ["queue"] and isinstance(query["queue"], six.string_types):
                 Queue(query["queue"]).empty()
 
         elif action in ("requeue", "requeue_retry"):
@@ -154,6 +156,6 @@ class JobAction(Task):
                         "_id": {"$in": jobs_by_queue[queue]}
                     }, {"$set": updates}, multi=True)
 
-                set_queues_size({queue: len(jobs) for queue, jobs in jobs_by_queue.iteritems()})
+                set_queues_size({queue: len(jobs) for queue, jobs in jobs_by_queue.items()})
 
         return stats
