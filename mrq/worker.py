@@ -20,7 +20,7 @@ from bson import ObjectId
 try:
     from redis.lock import LuaLock
 except ImportError:
-    from redis.lock import Lock
+    from redis.lock import Lock as LuaLock
     
 from collections import defaultdict
 from mrq.utils import load_class_by_path
