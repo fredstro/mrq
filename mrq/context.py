@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from future.builtins import next, map
@@ -49,13 +50,16 @@ def set_current_job(job):
         if id(current) in _GLOBAL_CONTEXT["greenlets"]:
             del _GLOBAL_CONTEXT["greenlets"][id(current)]
     else:
-        _GLOBAL_CONTEXT["greenlets"][id(current)] = job
+        _GLOBAL_CONTEXT["greenlets"][id(current)] = (current, job)
 
 
 def get_current_job(greenlet_id=None):
     if greenlet_id is None:
         greenlet_id = id(gevent.getcurrent())
-    return _GLOBAL_CONTEXT["greenlets"].get(greenlet_id)
+    pair = _GLOBAL_CONTEXT["greenlets"].get(greenlet_id)
+    if not pair:
+        return None
+    return pair[1]
 
 
 def set_current_worker(worker):

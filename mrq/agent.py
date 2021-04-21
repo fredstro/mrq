@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .context import get_current_config, connections, log, run_task, metric
 import time
 import datetime
@@ -8,7 +9,12 @@ import shlex
 import traceback
 from collections import defaultdict
 from bson import ObjectId
-from redis.lock import LuaLock
+
+try:
+    from redis.lock import LuaLock
+except ImportError:
+    from redis.lock import Lock
+    
 from .processes import Process, ProcessPool
 from .utils import MovingETA, normalize_command
 from .queue import Queue

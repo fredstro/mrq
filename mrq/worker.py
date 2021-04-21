@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division
 from future import standard_library
 standard_library.install_aliases()
 from future.builtins import str, bytes
@@ -15,7 +16,12 @@ import sys
 import json as json_stdlib
 import ujson as json
 from bson import ObjectId
-from redis.lock import LuaLock
+
+try:
+    from redis.lock import LuaLock
+except ImportError:
+    from redis.lock import Lock as LuaLock
+    
 from collections import defaultdict
 from mrq.utils import load_class_by_path
 
@@ -366,13 +372,7 @@ class Worker(Process):
                 if job and job.timeout and job.datestarted:
                     expires = job.datestarted + datetime.timedelta(seconds=job.timeout)
                     if now > expires:
-                        greenlet.kill(block=False)
-                        if job.data["status"] != "timeout":
-                            updates = {
-                                "exceptiontype": "TimeoutInterrupt",
-                                "traceback": "".join(traceback.format_stack(greenlet.gr_frame))
-                            }
-                            job._save_status("timeout", updates=updates, exception=False)
+                        job.kill(block=False, reason="timeout")
 
             time.sleep(1)
 
@@ -443,7 +443,7 @@ class Worker(Process):
                 # We might be dequeueing a new subqueue. Double check that we don't have anything more to do
                 outcome, dequeue_jobs = self.work_once(free_pool_slots=1, max_jobs=None)
 
-                if outcome is "wait" and dequeue_jobs == 0:
+                if outcome == "wait" and dequeue_jobs == 0:
                     break
 
     def work(self):

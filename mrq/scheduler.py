@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from future.builtins import str, object
 from .context import log, queue_job
 import datetime

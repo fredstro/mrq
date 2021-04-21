@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from past.builtins import basestring
@@ -351,6 +352,9 @@ def patch_io_httplib(config):
     patch_method(HTTPSConnection, "connect", connect)
 
     # Try to patch requests & urllib3 as they are very popular python modules.
+    # However, now requests.packages.urllib3 = urllib3
+    # so we need to avoid patching twice
+    patched_requests = False
     try:
         from requests.packages.urllib3.connection import (
             HTTPConnection,
@@ -361,7 +365,7 @@ def patch_io_httplib(config):
         patch_method(HTTPConnection, "connect", connect)
         patch_method(UnverifiedHTTPSConnection, "connect", connect)
         patch_method(VerifiedHTTPSConnection, "connect", connect)
-
+        patched_requests = True
     except ImportError:
         pass
 
@@ -371,10 +375,10 @@ def patch_io_httplib(config):
             UnverifiedHTTPSConnection,
             VerifiedHTTPSConnection
         )
-
-        patch_method(HTTPConnection, "connect", connect)
-        patch_method(UnverifiedHTTPSConnection, "connect", connect)
-        patch_method(VerifiedHTTPSConnection, "connect", connect)
+        if not patched_requests:
+            patch_method(HTTPConnection, "connect", connect)
+            patch_method(UnverifiedHTTPSConnection, "connect", connect)
+            patch_method(VerifiedHTTPSConnection, "connect", connect)
 
     except ImportError:
         pass

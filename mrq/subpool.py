@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from itertools import count as itertools_count
 import traceback
 import time
