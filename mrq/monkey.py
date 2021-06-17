@@ -18,7 +18,16 @@ def patch_method(base_class, method_name, method):
         return _mrq_patched_method
 
     old_method = getattr(base_class, method_name)
-    setattr(base_class, method_name, _patched_factory(old_method))
+    # Avoid patching already patched methods since this breaks
+    # in particular io_httplib.connect
+    if 'requests' in str(old_method) or 'requests' in str(method):
+        logging.info(f"Try Patching: {old_method}, ARGS:{args}, {kwargs}")
+    if 'patched_method' in str(old_method):
+        msg = f"Do not patch this instance! old:{old_method}, new:{method} metohd_name:{method_name}"
+        logging.info(msg)
+    else:
+        setattr(base_class, method_name, _patched_factory(old_method))
+
 
 
 def patch_io_all(config):
