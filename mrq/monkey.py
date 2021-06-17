@@ -7,6 +7,7 @@ import time
 import random
 import re
 import copy
+import logging
 
 
 def patch_method(base_class, method_name, method):
