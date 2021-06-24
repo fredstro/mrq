@@ -50,6 +50,8 @@ class JobAction(Task):
             if self.params.get(k):
                 if isinstance(self.params[k], (list, tuple)):
                     query[k] = {"$in": list(self.params[k])}
+                elif k == "queue" and self.params[k][-1] == "/":
+                    query[k] = {"$regex": "^%s" % self.params[k]}
                 else:
                     query[k] = self.params[k]
             if query.get("worker"):
@@ -114,21 +116,20 @@ class JobAction(Task):
             # In this case we could also loose some jobs that were queued after
             # the MongoDB update. They will be "lost" and requeued later like the other case
             # after the Redis BLPOP
-            if list(query.keys()) == ["queue"]:
+            if list(query.keys()) == ["queue"] and isinstance(query["queue"], basestring):
                 Queue(query["queue"]).empty()
 
         elif action in ("requeue", "requeue_retry"):
 
             # Requeue task by groups of maximum 1k items (if all in the same
             # queue)
+            status_query = query.get("status")
+            if not status_query:
+                query["status"] = {"$ne": "queued"}
+
             cursor = self.collection.find(query, projection=["_id", "queue"])
 
-            # We must freeze the list because queries below would change it.
-            # This could not fit in memory, research adding {"stats": {"$ne":
-            # "queued"}} in the query
-            fetched_jobs = list(cursor)
-
-            for jobs in group_iter(fetched_jobs, n=1000):
+            for jobs in group_iter(cursor, n=1000):
 
                 jobs_by_queue = defaultdict(list)
                 for job in jobs:
@@ -152,6 +153,6 @@ class JobAction(Task):
                         "_id": {"$in": jobs_by_queue[queue]}
                     }, {"$set": updates}, multi=True)
 
-                set_queues_size({queue: len(jobs) for queue, jobs in jobs_by_queue.iteritems()})
+                set_queues_size({queue: len(jobs) for queue, jobs in jobs_by_queue.items()})
 
         return stats

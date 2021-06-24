@@ -14,7 +14,7 @@ The following general flags can be passed as command-line arguments to either **
  - `--trace_memory_output_dir`: Directory where to output .pngs with object graphs. Defaults to folder **memory_traces**.
  - `--profile`: Run profiling on the whole worker. Defaults to **false**.
  - `--mongodb_jobs, --mongodb`: MongoDB URI for the jobs, scheduled_jobs & workers database. Defaults to **mongodb://127.0.0.1:27017/mrq**.
- - `--mongodb_logs` :MongoDB URI for the logs database."0" will disable remote logs, "1" will use main MongoDB. Defaults to **1**
+ - `--mongodb_logs` :MongoDB URI for the logs database."0" will disable remote logs, "1" will use main MongoDB. Defaults to **"1"**
  - `--mongodb_logs_size`: If provided, sets the log collection to capped to that amount of bytes.
  - `--redis`: Redis URI. Defaults to **redis://127.0.0.1:6379**.
  - `--redis_prefix`: Redis key prefix. Defaults to "mrq".
@@ -46,7 +46,7 @@ You can pass additional configuration flags:
  - `--max_jobs`: Gevent:max number of jobs to do before quitting. Use as a workaround for memory leaks in your tasks. Defaults to **0**
  - `--max_memory`: Max memory (in Mb) after which the process will be shut down. Use with `--processes [1-N]`
                   to have the worker automatically respawn when this happens. Defaults to **1**
- - `--grenlets, --gevent, --g`: Max number of greenlets to use. Defaults to **1**.
+ - `--greenlets, --gevent, --g`: Max number of greenlets to use. Defaults to **1**.
  - `--processes, --p`: Number of processes to launch . Defaults to **0**.
  - `--scheduler`: Run the scheduler. Defaults to **false**.
  - `--scheduler_interval`: Seconds between scheduler checks. Defaults to **60** seconds, only ints are acceptable.

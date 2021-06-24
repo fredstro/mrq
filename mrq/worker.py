@@ -15,7 +15,13 @@ import sys
 import json as json_stdlib
 import ujson as json
 from bson import ObjectId
-from redis.lock import LuaLock
+
+try:
+    from redis.lock import LuaLock
+except ImportError:
+    # Change name to avoid NameError raised when use of LuaLock at line 151
+    from redis.lock import Lock as LuaLock
+    
 from collections import defaultdict
 from mrq.utils import load_class_by_path
 
@@ -222,13 +228,21 @@ class Worker(Process):
           time.sleep(self.config["paused_queues_refresh_interval"])
 
     def get_memory(self):
-        mmaps = self.process.memory_maps()
-        mem = {
-            "rss": sum([x.rss for x in mmaps]),
-            "swap": sum([getattr(x, 'swap', getattr(x, 'swapped', 0)) for x in mmaps])
-        }
-        mem["total"] = mem["rss"] + mem["swap"]
-        return mem
+
+        try:
+
+            mmaps = self.process.memory_maps()
+            mem = {
+                "rss": sum([x.rss for x in mmaps]),
+                "swap": sum([getattr(x, 'swap', getattr(x, 'swapped', 0)) for x in mmaps])
+            }
+            mem["total"] = mem["rss"] + mem["swap"]
+            return mem
+
+        # memory_maps is unavailable on macOS
+        # https://github.com/pricingassistant/mrq/issues/228
+        except Exception as e:
+            return {"total": 0, "rss": 0, "swap": 0}
 
     def get_worker_report(self, with_memory=False):
         """ Returns a dict containing all the data we can about the current status of the worker and
@@ -342,7 +356,7 @@ class Worker(Process):
 
         if self.config["report_file"]:
             with open(self.config["report_file"], "wb") as f:
-                f.write(bytes(json.dumps(report, ensure_ascii=False), 'utf-8'))  # pylint: disable=no-member
+                f.write(bytes(json.dumps(report, ensure_ascii=False, default=str), 'utf-8'))  # pylint: disable=no-member
 
         if "_id" in report:
             del report["_id"]
@@ -366,13 +380,7 @@ class Worker(Process):
                 if job and job.timeout and job.datestarted:
                     expires = job.datestarted + datetime.timedelta(seconds=job.timeout)
                     if now > expires:
-                        greenlet.kill(block=False)
-                        if job.data["status"] != "timeout":
-                            updates = {
-                                "exceptiontype": "TimeoutInterrupt",
-                                "traceback": "".join(traceback.format_stack(greenlet.gr_frame))
-                            }
-                            job._save_status("timeout", updates=updates, exception=False)
+                        job.kill(block=False, reason="timeout")
 
             time.sleep(1)
 
@@ -443,7 +451,7 @@ class Worker(Process):
                 # We might be dequeueing a new subqueue. Double check that we don't have anything more to do
                 outcome, dequeue_jobs = self.work_once(free_pool_slots=1, max_jobs=None)
 
-                if outcome is "wait" and dequeue_jobs == 0:
+                if outcome == "wait" and dequeue_jobs == 0:
                     break
 
     def work(self):
