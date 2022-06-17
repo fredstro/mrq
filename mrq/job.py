@@ -708,7 +708,7 @@ def queue_jobs(main_task_path, params_list, queue=None, batch_size=1000):
             "status": "queued"
         } for params in params_group], w=1, return_jobs=False)
 
-        all_ids += job_ids
+        all_ids += job_ids.inserted_ids
 
     queue_obj.notify(len(all_ids))
     set_queues_size({queue: len(all_ids)})
