@@ -20,14 +20,14 @@ def test_max_memory_restart(worker):
     )
 
     i = 0
-    while worker.mongodb_jobs.mrq_jobs.find({"status": "success"}).count() != N:
+    while worker.mongodb_jobs.mrq_jobs.count_documents({"status": "success"}) != N:
         time.sleep(1)
         i += 1
         if i % 5 == 0:
             os.system("ps -ef")
 
     # We must have been restarted at least once.
-    assert worker.mongodb_jobs.mrq_workers.find().count() > 1
+    assert worker.mongodb_jobs.mrq_workers.count_documents({}) > 1
 
 
 def get_diff_after_jobs(worker, n_tasks, leak, sleep=0):
@@ -69,20 +69,20 @@ def test_memoryleaks_noleak(worker):
 
     diff100 = get_diff_after_jobs(worker, 100, 0)
 
-    assert worker.mongodb_jobs.mrq_jobs.count() == 100 + 10
+    assert worker.mongodb_jobs.mrq_jobs.count_documents({}) == 100 + 10
 
     diff200 = get_diff_after_jobs(worker, 200, 0)
 
-    assert worker.mongodb_jobs.mrq_jobs.count() == 200 + 100 + 10
+    assert worker.mongodb_jobs.mrq_jobs.count_documents({}) == 200 + 100 + 10
 
     # Most of the tasks should have mem_diff == 0
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"memory_diff": 0}).count() > 310 * 0.95
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"memory_diff": 0}) > 310 * 0.95
 
     assert diff100 < 15000
     assert diff200 < 15000
 
-    assert worker.mongodb_jobs.mrq_workers.find().count() == 1
+    assert worker.mongodb_jobs.mrq_workers.count_documents({}) == 1
 
 
 def test_memoryleaks_1mleak(worker):
@@ -101,7 +101,7 @@ def test_memoryleaks_1mleak(worker):
 
     assert diff1m > 900000
 
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"memory_diff": {"$gte": 80000}}).count() == 10
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"memory_diff": {"$gte": 80000}}) == 10
 
-    assert worker.mongodb_jobs.mrq_workers.find().count() == 1
+    assert worker.mongodb_jobs.mrq_workers.count_documents({}) == 1

@@ -36,7 +36,7 @@ class TestIo(Task):
 
         elif params["test"] == "mongodb-count":
 
-            return connections.mongodb_jobs.tests_inserts.count()
+            return connections.mongodb_jobs.tests_inserts.count_documents({})
 
         elif params["test"] == "mongodb-full-getmore":
 

@@ -89,9 +89,9 @@ class Report(Task):
         print()
         print("Crawl stats")
         print("===========")
-        print("URLs queued: %s" % collection.find().count())
-        print("URLs successfully crawled: %s" % collection.find({"fetched_date": {"$exists": True}}).count())
-        print("URLs redirected: %s" % collection.find({"redirected_to": {"$exists": True}}).count())
+        print("URLs queued: %s" % collection.count_documents({}))
+        print("URLs successfully crawled: %s" % collection.count_documents({"fetched_date": {"$exists": True}}))
+        print("URLs redirected: %s" % collection.count_documents({"redirected_to": {"$exists": True}}))
         print("Bytes fetched: %s" % (list(collection.aggregate([
             {"$group": {"_id": None, "sum": {"$sum": "$html_length"}}}
         ])) or [{}])[0].get("sum", 0))

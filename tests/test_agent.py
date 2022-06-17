@@ -189,10 +189,10 @@ def test_agent_autoscaling(worker):
     time.sleep(5)
 
     assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn"]}}) == 1
-    assert connections.mongodb_jobs.mrq_workers.count() == 1
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 1
 
     # Inserted by the autoscaling task
-    assert connections.mongodb_jobs.tests_inserts.count() > 0
+    assert connections.mongodb_jobs.tests_inserts.count_documents({}) > 0
 
     # Send 2 tasks with sleep(1) each second. That should not trigger an autoscale
     for i in range(10):
@@ -200,7 +200,7 @@ def test_agent_autoscaling(worker):
             "tests.tasks.general.Add", [{"a": 41, "b": i, "sleep": 1} for _ in range(2)], block=False)
         time.sleep(1)
 
-    assert connections.mongodb_jobs.mrq_workers.count() == 1
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 1
 
     # Now send 4 of them
     for i in range(10):
@@ -209,7 +209,7 @@ def test_agent_autoscaling(worker):
         time.sleep(1)
 
     # Should have scaled to 2
-    assert connections.mongodb_jobs.mrq_workers.count() == 2
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 2
     assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn", "full"]}}) == 2
 
     # Now send 10 of them - this should be too much but we should obey the max of 3 workers.
@@ -218,7 +218,7 @@ def test_agent_autoscaling(worker):
             "tests.tasks.general.Add", [{"a": 41, "b": i, "sleep": 1} for _ in range(10)], block=False)
         time.sleep(1)
 
-    assert connections.mongodb_jobs.mrq_workers.count() == 3
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 3
     assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn", "full"]}}) == 3
 
     # Kill all jobs

@@ -77,7 +77,7 @@ def test_cancel_by_path(worker, p_query):
     assert Job(requeue_job).fetch().data["result"]["cancelled"] == expected_action_jobs
 
     # Check that the right number of jobs ran.
-    assert worker.mongodb_jobs.tests_inserts.count() == len(
+    assert worker.mongodb_jobs.tests_inserts.count_documents({}) == len(
         job_ids) - 1 - expected_action_jobs
 
     action_jobs = list(worker.mongodb_jobs.mrq_jobs.find({"status": "cancel"}))
@@ -104,8 +104,8 @@ def test_cancel_by_path(worker, p_query):
 
     worker.stop(deps=False)
 
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"status": "queued"}).count() == expected_action_jobs
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"status": "queued"}) == expected_action_jobs
 
     assert Queue("default").size() + Queue("q1").size() + \
         Queue("q2").size() == expected_action_jobs

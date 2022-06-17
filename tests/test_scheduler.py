@@ -22,7 +22,7 @@ def test_scheduler_simple(worker, p_flags):
     collection = worker.mongodb_jobs.tests_inserts
     scheduled_jobs = worker.mongodb_jobs.mrq_scheduled_jobs
 
-    while not collection.count():
+    while not collection.count_documents({}):
         time.sleep(1)
 
     time.sleep(1)
@@ -50,7 +50,7 @@ def test_scheduler_simple(worker, p_flags):
     worker.start(
         deps=False, flags="--scheduler --config tests/fixtures/config-scheduler2.py %s" % p_flags)
 
-    while not collection.count():
+    while not collection.count_documents({}):
         time.sleep(1)
 
     jobs2 = list(scheduled_jobs.find())
@@ -89,17 +89,17 @@ def test_scheduler_dailytime(worker, p_flags):
     inserts = list(collection.find())
     assert len(inserts) == 0
     print(inserts)
-    assert collection.find({"params.b": "test"}).count() == 0
+    assert collection.count_documents({"params.b": "test"}) == 0
 
     # Only when the dailytime passes
     time.sleep(7)
-    assert collection.find().count() == 2
-    assert collection.find({"params.b": "test"}).count() == 1
+    assert collection.count_documents({}) == 2
+    assert collection.count_documents({"params.b": "test"}) == 1
 
     # Nothing more should happen today
     time.sleep(5)
-    assert collection.find().count() == 2
-    assert collection.find({"params.b": "test"}).count() == 1
+    assert collection.count_documents({}) == 2
+    assert collection.count_documents({"params.b": "test"}) == 1
 
     # .. even if we restart
     worker.stop(deps=False)
@@ -110,8 +110,8 @@ def test_scheduler_dailytime(worker, p_flags):
 
     time.sleep(5)
 
-    assert collection.find().count() == 2
-    assert collection.find({"params.b": "test"}).count() == 1
+    assert collection.count_documents({}) == 2
+    assert collection.count_documents({"params.b": "test"}) == 1
 
 
 def test_scheduler_dailytime_with_datelastqueued(worker):
@@ -155,14 +155,14 @@ def test_scheduler_weekday_dailytime(worker):
     inserts = list(collection.find())
     assert len(inserts) == 1
     print(inserts)
-    assert collection.find({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}).count() == 1
+    assert collection.count_documents({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}) == 1
 
     # more time passes and we do nothing
     time.sleep(7)
     inserts = list(collection.find())
     assert len(inserts) == 1
     print(inserts)
-    assert collection.find({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}).count() == 1
+    assert collection.count_documents({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}) == 1
 
 
 def test_scheduler_monthday(worker):
@@ -186,7 +186,7 @@ def test_scheduler_monthday(worker):
     time.sleep(10)
     inserts = list(collection.find())
     assert len(inserts) == 1
-    assert collection.find({"params.monthday": datetime.datetime.utcnow().day}).count() == 1
+    assert collection.count_documents({"params.monthday": datetime.datetime.utcnow().day}) == 1
 
 
 def test_scheduler_noparams(worker):
@@ -221,8 +221,8 @@ def test_scheduler_invalidconfig(worker, p_config):
 
     # The worker should be stopped immediately and do not jobs
 
-    assert collection.count() == 0
-    assert jobs.count() == 0
+    assert collection.count_documents({}) == 0
+    assert jobs.count_documents({}) == 0
 
     worker.process.wait()
     assert worker.process.returncode > 0

@@ -20,7 +20,7 @@ def test_raw_sorted(worker, p_queue, p_pushback, p_timed, p_flags):
 
     current_time = int(time.time())
 
-    assert jobs_collection.count() == 0
+    assert jobs_collection.count_documents({}) == 0
 
     assert Queue(p_queue).size() == 0
 
@@ -41,7 +41,7 @@ def test_raw_sorted(worker, p_queue, p_pushback, p_timed, p_flags):
     if not p_timed:
 
         assert Queue(p_queue).size() == 0
-        assert test_collection.count() == 3
+        assert test_collection.count_documents({}) == 3
         assert list(test_collection.find(projection={"params": 1, "_id": 0}).limit(1)) == [
             {"params": {"sorted_set": "aaa"}}
         ]
@@ -55,7 +55,7 @@ def test_raw_sorted(worker, p_queue, p_pushback, p_timed, p_flags):
         assert set(Queue(p_queue).list_raw_jobs()) == set([b"bbb", b"ccc"])
 
     # The second one should not yet even exist in mrq_jobs
-    assert jobs_collection.count() == 1
+    assert jobs_collection.count_documents({}) == 1
     assert list(jobs_collection.find())[0]["status"] == "success"
 
     assert list(test_collection.find(projection={"params": 1, "_id": 0})) == [
@@ -70,13 +70,13 @@ def test_raw_sorted(worker, p_queue, p_pushback, p_timed, p_flags):
     else:
         assert Queue(p_queue).size() == 0
 
-    assert jobs_collection.count() == 3
+    assert jobs_collection.count_documents({}) == 3
     assert list(jobs_collection.find())[1]["status"] == "success"
     assert list(jobs_collection.find())[2]["status"] == "success"
 
     assert list(jobs_collection.find())[2]["worker"]
 
-    assert test_collection.count() == 3
+    assert test_collection.count_documents({}) == 3
 
 
 @pytest.mark.parametrize("has_subqueue", [False, True])
@@ -100,7 +100,7 @@ def test_raw_set(worker, has_subqueue, p_queue, p_set):
     test_collection = worker.mongodb_logs.tests_inserts
     jobs_collection = worker.mongodb_jobs.mrq_jobs
 
-    assert jobs_collection.count() == 0
+    assert jobs_collection.count_documents({}) == 0
 
     assert Queue(p_queue).size() == 0
 
@@ -109,16 +109,16 @@ def test_raw_set(worker, has_subqueue, p_queue, p_set):
     assert Queue(p_queue).size() == 0
 
     if p_set:
-        assert jobs_collection.count() == 3
+        assert jobs_collection.count_documents({}) == 3
         assert jobs_collection.count({"status": "success"}) == 3
 
-        assert test_collection.count() == 3
+        assert test_collection.count_documents({}) == 3
 
     else:
-        assert jobs_collection.count() == 4
+        assert jobs_collection.count_documents({}) == 4
         assert jobs_collection.count({"status": "success"}) == 4
 
-        assert test_collection.count() == 4
+        assert test_collection.count_documents({}) == 4
 
 
 def test_raw_started(worker):
@@ -130,15 +130,15 @@ def test_raw_started(worker):
     time.sleep(2)
     jobs_collection = worker.mongodb_jobs.mrq_jobs
 
-    assert jobs_collection.find({"status": "started", "queue": "teststartedx"}).count() == 2
-    assert jobs_collection.count() == 2
+    assert jobs_collection.count_documents({"status": "started", "queue": "teststartedx"}) == 2
+    assert jobs_collection.count_documents({}) == 2
 
     worker.mongodb_jobs.tests_flags.insert({"flag": "f1"})
     time.sleep(1)
 
-    assert jobs_collection.find({"status": "success", "queue": "teststartedx"}).count() == 1
-    assert jobs_collection.find({"status": "started", "queue": "teststartedx"}).count() == 2
-    assert jobs_collection.count() == 3
+    assert jobs_collection.count_documents({"status": "success", "queue": "teststartedx"}) == 1
+    assert jobs_collection.count_documents({"status": "started", "queue": "teststartedx"}) == 2
+    assert jobs_collection.count_documents({}) == 3
 
     worker.mongodb_jobs.tests_flags.insert({"flag": "f2"})
     worker.mongodb_jobs.tests_flags.insert({"flag": "f3"})
@@ -146,8 +146,8 @@ def test_raw_started(worker):
 
     worker.stop(block=True, deps=False)
 
-    assert jobs_collection.find({"status": "success", "queue": "teststartedx"}).count() == 3
-    assert jobs_collection.count() == 3
+    assert jobs_collection.count_documents({"status": "success", "queue": "teststartedx"}) == 3
+    assert jobs_collection.count_documents({}) == 3
 
     worker.stop_deps()
 
@@ -182,7 +182,7 @@ def test_raw_exception(worker):
         flags="--greenlets 10 --config tests/fixtures/config-raw1.py", queues=p_queue)
 
     jobs_collection = worker.mongodb_jobs.mrq_jobs
-    assert jobs_collection.count() == 0
+    assert jobs_collection.count_documents({}) == 0
     assert Queue(p_queue).size() == 0
 
     worker.send_raw_tasks(p_queue, ["msg1"], block=True)
@@ -190,7 +190,7 @@ def test_raw_exception(worker):
     failjob = list(jobs_collection.find())[0]
     assert Queue("default").size() == 0
     assert Queue(p_queue).size() == 0
-    assert jobs_collection.count() == 1
+    assert jobs_collection.count_documents({}) == 1
     assert failjob["status"] == "failed"
 
     worker.stop(deps=False)
@@ -209,7 +209,7 @@ def test_raw_exception(worker):
 
     assert Queue("default").size() == 0
     assert Queue(p_queue).size() == 0
-    assert jobs_collection.count() == 2
+    assert jobs_collection.count_documents({}) == 2
     assert list(jobs_collection.find({"_id": failjob["_id"]}))[
         0]["status"] == "queued"
     assert list(jobs_collection.find({"_id": {"$ne": failjob["_id"]}}))[
@@ -222,7 +222,7 @@ def test_raw_exception(worker):
     worker.wait_for_idle()
 
     assert Queue(p_queue).size() == 0
-    assert jobs_collection.count() == 2
+    assert jobs_collection.count_documents({}) == 2
     assert Queue("testx").size() == 0
     assert list(jobs_collection.find({"_id": failjob["_id"]}))[
         0]["status"] == "failed"
@@ -236,7 +236,7 @@ def test_raw_retry(worker):
         flags="--greenlets 10 --config tests/fixtures/config-raw1.py", queues=p_queue)
 
     jobs_collection = worker.mongodb_jobs.mrq_jobs
-    assert jobs_collection.count() == 0
+    assert jobs_collection.count_documents({}) == 0
     assert Queue(p_queue).size() == 0
 
     worker.send_raw_tasks(p_queue, [0], block=True)
@@ -247,7 +247,7 @@ def test_raw_retry(worker):
     assert Queue("testx").size() == 1
 
     assert Queue(p_queue).size() == 0
-    assert jobs_collection.count() == 1
+    assert jobs_collection.count_documents({}) == 1
     assert failjob["status"] == "queued"
     assert failjob["queue"] == "testx"
 
@@ -288,9 +288,9 @@ def test_raw_mixed(worker, p_queue, p_greenlets):
     assert Queue("test_raw").size() == 0
     assert Queue("default").size() == 0
 
-    assert test_collection.count() == 4
-    assert jobs_collection.count() == 4
-    assert jobs_collection.find({"status": "success"}).count() == 4
+    assert test_collection.count_documents({}) == 4
+    assert jobs_collection.count_documents({}) == 4
+    assert jobs_collection.count_documents({"status": "success"}) == 4
 
     assert list(jobs_collection.find({"status": "success"}))[0]["worker"]
 
@@ -313,13 +313,13 @@ def test_raw_no_storage(worker):
     time.sleep(2)
 
     # No started inserted.
-    assert jobs_collection.count() == 0
+    assert jobs_collection.count_documents({}) == 0
 
     time.sleep(2)
 
     # No success either, but we did insert
-    assert test_collection.count() == 1
-    assert jobs_collection.count() == 0
+    assert test_collection.count_documents({}) == 1
+    assert jobs_collection.count_documents({}) == 0
     test_collection.remove({})
 
     # However failed tasks get stored.
@@ -341,8 +341,8 @@ def test_raw_no_storage(worker):
     job.requeue(queue="default")
 
     time.sleep(1)
-    assert test_collection.count() == 1
-    assert jobs_collection.count() == 1
+    assert test_collection.count_documents({}) == 1
+    assert jobs_collection.count_documents({}) == 1
     assert jobs_collection.count({"status": "success"}) == 1
 
     jobs_collection.remove({})

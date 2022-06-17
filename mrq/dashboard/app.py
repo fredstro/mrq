@@ -309,7 +309,7 @@ def api_datatables(unit):
 
         data = {
             "aaData": list(cursor),
-            "iTotalDisplayRecords": collection.find(query).count()
+            "iTotalDisplayRecords": collection.count_documents(query)
         }
 
     data["sEcho"] = request.args["sEcho"]

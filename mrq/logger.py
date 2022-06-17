@@ -65,9 +65,9 @@ class MongoHandler(logging.Handler):
         if collection == "1":
             self.collection = connections.mongodb_logs.mrq_logs
         if self.collection and self.mongodb_logs_size:
-            if "mrq_logs" in connections.mongodb_logs.collection_names() and not self.collection.options().get("capped"):
+            if "mrq_logs" in connections.mongodb_logs.list_collection_names() and not self.collection.options().get("capped"):
                 connections.mongodb_logs.command({"convertToCapped": "mrq_logs", "size": self.mongodb_logs_size})
-            elif "mrq_logs" not in connections.mongodb_logs.collection_names():
+            elif "mrq_logs" not in connections.mongodb_logs.list_collection_names():
                 try:
                     connections.mongodb_logs.create_collection("mrq_logs", capped=True, size=self.mongodb_logs_size)
                 except pymongo.errors.OperationFailure:  # The collection might have been created in the meantime

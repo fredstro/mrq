@@ -295,8 +295,8 @@ class MongoFixture(ProcessFixture):
 
     def flush(self):
         for mongodb in (connections.mongodb_jobs, connections.mongodb_logs):
-            if mongodb:
-                for c in mongodb.collection_names():
+            if mongodb is not None:
+                for c in mongodb.list_collection_names():
                     if not c.startswith("system."):
                         mongodb.drop_collection(c)
 

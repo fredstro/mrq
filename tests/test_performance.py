@@ -269,9 +269,9 @@ def test_performance_queue_cancel_requeue(worker):
     assert queue_time < 2
 
     assert Queue("noexec").size() == n_tasks
-    assert worker.mongodb_jobs.mrq_jobs.count() == n_tasks
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"status": "queued"}).count() == n_tasks
+    assert worker.mongodb_jobs.mrq_jobs.count_documents({}) == n_tasks
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"status": "queued"}) == n_tasks
 
     # Then cancel them all
     start_time = time.time()
@@ -285,8 +285,8 @@ def test_performance_queue_cancel_requeue(worker):
     queue_time = time.time() - start_time
     print("Cancelled %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, old_div(float(n_tasks), queue_time)))
     assert queue_time < 5
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"status": "cancel"}).count() == n_tasks
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"status": "cancel"}) == n_tasks
 
     # Special case because we cancelled by queue: they should have been
     # removed from redis.
@@ -304,8 +304,8 @@ def test_performance_queue_cancel_requeue(worker):
     queue_time = time.time() - start_time
     print("Requeued %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, old_div(float(n_tasks), queue_time)))
     assert queue_time < 2
-    assert worker.mongodb_jobs.mrq_jobs.find(
-        {"status": "queued"}).count() == n_tasks
+    assert worker.mongodb_jobs.mrq_jobs.count_documents(
+        {"status": "queued"}) == n_tasks
 
     # They should be back in the queue
     assert Queue("noexec").size() == n_tasks
@@ -349,9 +349,9 @@ def test_worker_efficiency(worker, p_queue_type, p_greenlets, p_min_efficiency):
     total_time = time.time() - start_time
 
     if p_queue_type == "raw_nostorage":
-        assert worker.mongodb_jobs.mrq_jobs.count() == 0
+        assert worker.mongodb_jobs.mrq_jobs.count_documents({}) == 0
     else:
-        assert worker.mongodb_jobs.mrq_jobs.find({"status": "success"}).count() == count_jobs
+        assert worker.mongodb_jobs.mrq_jobs.count_documents({"status": "success"}) == count_jobs
 
     perfect_time = (total_sleep_time / p_greenlets) + 1  # + 1 to compensate for the worker stopping time w/ decreasing job count
 
