@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import division
 from future.builtins import str, range, object
 from past.utils import old_div

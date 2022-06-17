@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from past.builtins import basestring
@@ -6,6 +7,7 @@ import time
 import random
 import re
 import copy
+import logging
 
 
 def patch_method(base_class, method_name, method):
@@ -17,7 +19,16 @@ def patch_method(base_class, method_name, method):
         return _mrq_patched_method
 
     old_method = getattr(base_class, method_name)
-    setattr(base_class, method_name, _patched_factory(old_method))
+    # Avoid patching already patched methods since this breaks
+    # in particular io_httplib.connect
+    if 'requests' in str(old_method) or 'requests' in str(method):
+        logging.info(f"Try Patching: {old_method}, ARGS:{args}, {kwargs}")
+    if 'patched_method' in str(old_method):
+        msg = f"Do not patch this instance! old:{old_method}, new:{method} metohd_name:{method_name}"
+        logging.info(msg)
+    else:
+        setattr(base_class, method_name, _patched_factory(old_method))
+
 
 
 def patch_io_all(config):
@@ -351,6 +362,9 @@ def patch_io_httplib(config):
     patch_method(HTTPSConnection, "connect", connect)
 
     # Try to patch requests & urllib3 as they are very popular python modules.
+    # However, now requests.packages.urllib3 = urllib3
+    # so we need to avoid patching twice
+    patched_requests = False
     try:
         from requests.packages.urllib3.connection import (
             HTTPConnection,
@@ -361,7 +375,7 @@ def patch_io_httplib(config):
         patch_method(HTTPConnection, "connect", connect)
         patch_method(UnverifiedHTTPSConnection, "connect", connect)
         patch_method(VerifiedHTTPSConnection, "connect", connect)
-
+        patched_requests = True
     except ImportError:
         pass
 
@@ -371,10 +385,10 @@ def patch_io_httplib(config):
             UnverifiedHTTPSConnection,
             VerifiedHTTPSConnection
         )
-
-        patch_method(HTTPConnection, "connect", connect)
-        patch_method(UnverifiedHTTPSConnection, "connect", connect)
-        patch_method(VerifiedHTTPSConnection, "connect", connect)
+        if not patched_requests:
+            patch_method(HTTPConnection, "connect", connect)
+            patch_method(UnverifiedHTTPSConnection, "connect", connect)
+            patch_method(VerifiedHTTPSConnection, "connect", connect)
 
     except ImportError:
         pass

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from mrq.task import Task
 from mrq.context import connections
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, print_function
 from future.builtins import str
 from mrq.queue import Queue
 from mrq.task import Task
@@ -27,7 +28,6 @@ class RequeueRetryJobs(Task):
     max_concurrency = 1
 
     def run(self, params):
-        print("IN")
         return run_task("mrq.basetasks.utils.JobAction", {
             "status": "retry",
             "dateretry": {"$lte": datetime.datetime.utcnow()},

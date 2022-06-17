@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .context import get_current_config, connections, log, run_task, metric
 import time
 import datetime

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division
 from future import standard_library
 standard_library.install_aliases()
 from future.builtins import str, bytes
@@ -225,7 +226,7 @@ class Worker(Process):
 
           # Update the process-local list of paused queues
           self.paused_queues = self.get_paused_queues()
-          time.sleep(self.config["paused_queues_refresh_interval"])
+          time.sleep(self.config.get("paused_queues_refresh_interval",10))
 
     def get_memory(self):
 
@@ -475,7 +476,7 @@ class Worker(Process):
             self.greenlets["subqueues"] = gevent.spawn(self.greenlet_subqueues)
 
         # An interval of 0 disables the refresh
-        if self.config["paused_queues_refresh_interval"] > 0:
+        if self.config.get("paused_queues_refresh_interval",10) > 0:
             self.greenlets["paused_queues"] = gevent.spawn(self.greenlet_paused_queues)
 
         if self.config["report_interval"] > 0:
