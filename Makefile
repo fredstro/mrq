@@ -7,10 +7,10 @@ docker_push:
 	docker push pricingassistant/mrq:latest
 
 test: docker
-	sh -c "docker run --rm -i -t -p 27017:27017 -p 6379:6379 -p 5555:5555 -p 20020:20020 -v `pwd`:/app:rw -w /app pricingassistant/mrq-env python -m pytest tests/ -v --instafail"
+	sh -c "docker run --rm -i -t -p 27018:27017 -p 6379:6379 -p 5555:5555 -p 20020:20020 -v `pwd`:/app:rw -w /app pricingassistant/mrq-env python -m pytest tests/ -v --instafail"
 
 test3: docker
-	sh -c "docker run --rm -i -t -p 27017:27017 -p 6379:6379 -p 5555:5555 -p 20020:20020 -v `pwd`:/app:rw -w /app pricingassistant/mrq-env python3 -m pytest tests/ -v --instafail"
+	sh -c "docker run --rm -i -t -p 27018:27017 -p 6379:6379 -p 5555:5555 -p 20020:20020 -v `pwd`:/app:rw -w /app pricingassistant/mrq-env python3 -m pytest tests/test_jobinspect.py::test_trace_long_fetch -v --instafail --fulltrace"
 
 testpypy: docker
 	sh -c "docker run --rm -i -t -p 27017:27017 -p 6379:6379 -p 5555:5555 -p 20020:20020 -v `pwd`:/app:rw -w /app pricingassistant/mrq-env /pypy/bin/pypy -m pytest tests/ -v --instafail"
@@ -56,7 +56,7 @@ dashboard:
 	python mrq/dashboard/app.py
 
 stack:
-	mongod &
+	mongod --smallfiles --noprealloc --nojournal &
 	redis-server &
 	python mrq/dashboard/app.py &
 

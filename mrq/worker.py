@@ -13,7 +13,7 @@ import traceback
 import psutil
 import sys
 import json as json_stdlib
-import ujson as json
+import json
 from bson import ObjectId
 
 try:
