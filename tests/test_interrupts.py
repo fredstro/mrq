@@ -215,7 +215,7 @@ def test_interrupt_worker_sigkill(worker, p_flags):
 
     assert res["requeued"] == 1
     assert res["started"] == 2  # current job should count too
-    assert Queue("default").size() == 1
+    assert Queue("default").size() == 2
 
     Queue("default").list_job_ids() == [str(job_id)]
 

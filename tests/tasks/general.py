@@ -237,7 +237,7 @@ class MongoInsert(Task):
     def run(self, params):
 
         connections.mongodb_jobs.tests_inserts.insert(
-            {"params": params}, manipulate=False)
+            {"params": params})
 
         if params.get("sleep", 0) > 0:
             time.sleep(params.get("sleep", 0))

@@ -5,9 +5,9 @@ from mrq.queue import Queue
 
 
 def test_abort(worker):
-
+    print("Starting")
     worker.start()
-
+    print("Started")
     worker.send_task("tests.tasks.general.Abort", {"a": 41}, accept_statuses=["abort"])
 
     assert Queue("default").size() == 0

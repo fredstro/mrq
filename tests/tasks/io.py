@@ -27,7 +27,7 @@ class TestIo(Task):
 
         if params["test"] == "mongodb-insert":
 
-            return connections.mongodb_jobs.tests_inserts.insert({"params": params["params"]}, manipulate=False)
+            return connections.mongodb_jobs.tests_inserts.insert_one({"params": params["params"]})
 
         elif params["test"] == "mongodb-find":
 

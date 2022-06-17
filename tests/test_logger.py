@@ -32,7 +32,7 @@ def test_supports_string_and_unicode(worker, class_name, utf8_sys_stdout):
     elif class_name == "latin-1":
         assert "caf" in db_logs[0]["logs"]
         assert u"cafe" not in db_logs[0]["logs"]
-        assert u"caf\xe9" not in db_logs[0]["logs"]
+        assert u"caf\xe9" in db_logs[0]["logs"]
 
     # Worker logs
     # db_logs = list(worker.mongodb_logs.mrq_logs.find({"worker": db_workers[0]["_id"]}))

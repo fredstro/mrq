@@ -6,6 +6,6 @@ class Autoscale(Task):
 
     def run(self, params):
 
-        connections.mongodb_jobs.tests_inserts.insert({"params": params}, manipulate=False)
+        connections.mongodb_jobs.tests_inserts.insert_one({"params": params})
 
         return params
