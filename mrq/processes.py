@@ -140,9 +140,11 @@ class ProcessPool(object):
 
     def watch_process(self, process):
         """ Manages the status of a single process """
-
-        status = process["psutil"].status()
-
+        try:
+            status = process["psutil"].status()
+        except psutil.NoSuchProcess as e:
+            log.error(f"{e}")
+            status = "dead"
         # TODO: how to avoid zombies?
         # print process["pid"], status
 
