@@ -1,8 +1,3 @@
-from __future__ import absolute_import, division
-from future import standard_library
-standard_library.install_aliases()
-from future.builtins import str, bytes
-from future.utils import iteritems
 import gevent
 import gevent.pool
 import os
@@ -324,7 +319,7 @@ class Worker(Process):
 
         return {
             "status": self.status,
-            "config": {k: v for k, v in iteritems(self.config) if k in whitelisted_config},
+            "config": {k: v for k, v in self.config.items() if k in whitelisted_config},
             "done_jobs": self.done_jobs,
             "usage_avg": used_avg / self.pool_size,
             "datestarted": self.datestarted,
@@ -348,7 +343,6 @@ class Worker(Process):
         }
 
     def report_worker(self, w=0):
-
         report = self.get_worker_report(with_memory=True)
 
         if self.config["max_memory"] > 0:

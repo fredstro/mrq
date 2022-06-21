@@ -1,6 +1,3 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import range
 from mrq.task import Task
 from mrq.context import (log, retry_current_job, connections, get_current_config, get_current_job,
                          subpool_map, subpool_imap, abort_current_job, set_current_job_progress)

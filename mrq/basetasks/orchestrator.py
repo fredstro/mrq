@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from future.builtins import str
 from mrq.queue import Queue
 from mrq.task import Task
 from mrq.job import Job

@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-
-from future.builtins import bytes, str, object
-
 import time
 from bson import ObjectId
 from . import context
@@ -11,11 +6,9 @@ import binascii
 from .redishelpers import redis_key
 
 import sys
-from future import standard_library
 from itertools import chain
 
 PY3 = sys.version_info > (3,)
-standard_library.install_aliases()
 
 
 class Queue(object):

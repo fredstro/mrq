@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from future.utils import iteritems
 from gevent import monkey
 monkey.patch_all()
 
@@ -16,7 +11,6 @@ from bson import ObjectId
 import json
 import argparse
 from werkzeug.serving import run_simple
-from future.builtins import str
 
 sys.path.insert(0, os.getcwd())
 
@@ -47,7 +41,7 @@ WHITELISTED_MRQ_CONFIG_KEYS = ["dashboard_autolink_repositories"]
 @requires_auth
 def root():
     return render_template("index.html", MRQ_CONFIG={
-        k: v for k, v in iteritems(cfg) if k in WHITELISTED_MRQ_CONFIG_KEYS
+        k: v for k, v in cfg.items() if k in WHITELISTED_MRQ_CONFIG_KEYS
     })
 
 
@@ -149,7 +143,7 @@ def post_workergroups():
             collection.delete_one({"_id": k})
 
     # upsert groups
-    for k, v in workergroups.iteritems():
+    for k, v in workergroups.items():
         collection.update_one({"_id": k}, {"$set": v}, upsert=True)
 
     return jsonify({"status": "ok"})
@@ -349,7 +343,7 @@ def api_job_traceback(job_id):
 @app.route('/api/jobaction', methods=["POST"])
 @requires_auth
 def api_job_action():
-    params = {k: v for k, v in iteritems(request.form)}
+    params = {k: v for k, v in request.form.items()}
     if params.get("status") and "-" in params.get("status"):
         params["status"] = params.get("status").split("-")
     return jsonify({"job_id": queue_job("mrq.basetasks.utils.JobAction",

@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from past.builtins import basestring
 from .context import get_current_job, get_current_worker
 import time
 import random
@@ -169,7 +165,7 @@ def patch_network_latency(seconds=0.01):
     def sleep():
         if isinstance(seconds, float):
             time.sleep(seconds)
-        elif isinstance(seconds, basestring):
+        elif isinstance(seconds, str):
             # pylint: disable=maybe-no-member
             if "-" in seconds:
                 time.sleep(random.uniform(

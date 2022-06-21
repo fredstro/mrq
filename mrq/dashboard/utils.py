@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import json
 # from werkzeug import Response
 from functools import wraps

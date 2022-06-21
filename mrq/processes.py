@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from future.builtins import object
 import psutil
 import os
 import time

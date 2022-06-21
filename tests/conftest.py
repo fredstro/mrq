@@ -1,10 +1,3 @@
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import range
-from builtins import str
-from builtins import object
-from past.builtins import basestring
 import pytest
 import os
 try:
@@ -71,7 +64,7 @@ class ProcessFixture(object):
 
         self.cmdline = cmdline
         # print cmdline
-        self.process = subprocess.Popen(re.split(r"\s+", cmdline) if isinstance(cmdline, basestring) else cmdline,
+        self.process = subprocess.Popen(re.split(r"\s+", cmdline) if isinstance(cmdline, str) else cmdline,
                                         shell=False, close_fds=True, env=env, cwd=os.getcwd(), stdout=stdout)
 
         if self.quiet:

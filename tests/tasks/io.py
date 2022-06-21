@@ -1,6 +1,3 @@
-from future import standard_library
-standard_library.install_aliases()
-
 # Evil workaround to disable SSL verification
 import ssl
 ctx = ssl.create_default_context()
@@ -9,8 +6,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 from mrq.task import Task
 from mrq.context import connections, log
-import urllib.request, urllib.error, urllib.parse
-from future.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 
 class TestIo(Task):

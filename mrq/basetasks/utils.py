@@ -1,8 +1,4 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import six
-from future.utils import itervalues
-from future.builtins import str
 from mrq.task import Task
 from mrq.queue import Queue
 from bson import ObjectId
@@ -91,7 +87,7 @@ class JobAction(Task):
             else:
 
                 tasks_defs = get_current_config().get("tasks", {})
-                tasks_ttls = [cfg.get("result_ttl", 0) for cfg in itervalues(tasks_defs)]
+                tasks_ttls = [cfg.get("result_ttl", 0) for cfg in tasks_defs.values()]
 
                 result_ttl = max([default_job_timeout] + tasks_ttls)
 

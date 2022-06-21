@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from future.builtins import str, range, object
-from past.utils import old_div
 import re
 import importlib
 import time
@@ -61,7 +57,7 @@ def group_iter(iterator, n=2):
     if isinstance(iterator, list):
 
         length = len(iterator)
-        for i in range(int(math.ceil(old_div(float(length), n)))):
+        for i in range(int(math.ceil(float(length) / n))):
             yield iterator[i * n: (i + 1) * n]
 
     else:

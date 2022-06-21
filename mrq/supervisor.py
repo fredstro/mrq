@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from future.builtins import object
-
 from .context import get_current_config, connections, log
 from bson import ObjectId
 from collections import defaultdict

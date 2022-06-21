@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from future.builtins import str, object
 import datetime
 from bson import ObjectId
 from redis.exceptions import LockError

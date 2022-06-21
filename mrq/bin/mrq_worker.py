@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
 import os
-from future.builtins import str
 import sys
 is_pypy = '__pypy__' in sys.builtin_module_names
 

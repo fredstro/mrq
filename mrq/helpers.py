@@ -1,5 +1,4 @@
 """ Helpers are util functions which use the context """
-from __future__ import absolute_import
 from .context import connections, get_current_config
 import time
 

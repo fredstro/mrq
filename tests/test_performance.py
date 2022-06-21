@@ -1,8 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import time
 from mrq.queue import Queue
 import pytest
@@ -44,7 +39,7 @@ def test_job_max_latency(worker, p_max_latency, p_min_observed_latency, p_max_ob
 
         latencies.append(latency)
 
-    avg_latency = old_div(float(sum(latencies)), len(latencies))
+    avg_latency = float(sum(latencies)) / len(latencies)
     print("Average observed latency: %ss" % avg_latency)
 
     assert p_min_observed_latency <= avg_latency < p_max_observed_latency
@@ -100,7 +95,7 @@ def benchmark_task(worker, taskpath, taskparams, tasks=1000, greenlets=50, proce
 
     total_time = time.time() - start_time
 
-    print("%s tasks done with %s greenlets and %s processes in %0.3f seconds : %0.2f jobs/second!" % (tasks, greenlets, processes, total_time, old_div(tasks, total_time)))
+    print("%s tasks done with %s greenlets and %s processes in %0.3f seconds : %0.2f jobs/second!" % (tasks, greenlets, processes, total_time, tasks / total_time))
 
     assert total_time < max_seconds
 
@@ -265,7 +260,7 @@ def test_performance_queue_cancel_requeue(worker):
 
     queue_time = time.time() - start_time
 
-    print("Queued %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, old_div(float(n_tasks), queue_time)))
+    print("Queued %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, float(n_tasks) / queue_time))
     assert queue_time < 2
 
     assert Queue("noexec").size() == n_tasks
@@ -283,7 +278,7 @@ def test_performance_queue_cancel_requeue(worker):
     )
     assert res["cancelled"] == n_tasks
     queue_time = time.time() - start_time
-    print("Cancelled %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, old_div(float(n_tasks), queue_time)))
+    print("Cancelled %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, float(n_tasks) / queue_time))
     assert queue_time < 5
     assert worker.mongodb_jobs.mrq_jobs.count_documents(
         {"status": "cancel"}) == n_tasks
@@ -302,7 +297,7 @@ def test_performance_queue_cancel_requeue(worker):
     )
 
     queue_time = time.time() - start_time
-    print("Requeued %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, old_div(float(n_tasks), queue_time)))
+    print("Requeued %s tasks in %s seconds (%s/s)" % (n_tasks, queue_time, float(n_tasks) / queue_time))
     assert queue_time < 2
     assert worker.mongodb_jobs.mrq_jobs.count_documents(
         {"status": "queued"}) == n_tasks

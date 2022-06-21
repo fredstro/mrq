@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from future.builtins import next, map
-from past.builtins import basestring
 import logging
 import gevent
 import gevent.pool
@@ -137,7 +132,7 @@ def _connections_factory(attr):
         return tuple(map(int, (v.split("."))))
 
     if attr.startswith("redis"):
-        if isinstance(config_obj, basestring):
+        if isinstance(config_obj, str):
 
             import redis as pyredis
             import redis.connection as pyredisconnection
@@ -169,7 +164,7 @@ def _connections_factory(attr):
 
     elif attr.startswith("mongodb"):
 
-        if isinstance(config_obj, basestring):
+        if isinstance(config_obj, str):
 
             if attr == "mongodb_logs" and config_obj == "1":
                 return connections.mongodb_jobs

@@ -1,8 +1,4 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import six
-from future.builtins import object
-from future.utils import iteritems
 
 from collections import defaultdict
 import logging
@@ -101,10 +97,10 @@ class MongoHandler(logging.Handler):
         inserts = [{
             "worker": k,
             "logs": "\n".join(v) + "\n"
-        } for k, v in iteritems(self.buffer["workers"])] + [{
+        } for k, v in self.buffer["workers"].items()] + [{
             "job": k,
             "logs": "\n".join(v) + "\n"
-        } for k, v in iteritems(self.buffer["jobs"])]
+        } for k, v in self.buffer["jobs"].items()]
 
         if len(inserts) == 0:
             return

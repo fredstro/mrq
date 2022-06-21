@@ -1,11 +1,8 @@
-from __future__ import absolute_import
 from datetime import datetime
 import time
 from .queue import Queue
 from . import context
 from .redishelpers import redis_zaddbyscore, redis_zpopbyscore, redis_key, redis_group_command
-from past.utils import old_div
-from future.builtins import range
 
 
 class QueueRaw(Queue):
@@ -250,7 +247,7 @@ class QueueRaw(Queue):
             raise Exception("Not a sorted queue")
 
         with context.connections.redis.pipeline(transaction=exact) as pipe:
-            interval = old_div(float(stop - start), slices)
+            interval = float(stop - start) // slices
             for i in range(0, slices):
                 pipe.zcount(self.redis_key,
                             (start + i * interval),
