@@ -79,7 +79,7 @@ class QueueRaw(Queue):
                 now = time.time()
                 params_list = {x: now for x in params_list}
 
-            context.connections.redis.zadd(self.redis_key, **params_list)
+            context.connections.redis.zadd(self.redis_key, params_list)
 
         # SET
         elif self.is_set:
