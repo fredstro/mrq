@@ -102,16 +102,16 @@ class JobAction(Task):
                 for job in self.collection.find(query, projection={"queue": 1}):
                     size_by_queues[job["queue"]] += 1
 
-            ret = self.collection.update(query, {"$set": {
+            ret = self.collection.update_many(query, {"$set": {
                 "status": "cancel",
                 "dateexpires": now + datetime.timedelta(seconds=result_ttl),
                 "dateupdated": now
-            }}, multi=True)
-            stats["cancelled"] = ret["n"]
+            }})
+            stats["cancelled"] = ret.modified_count
 
             if "queue" in query:
                 if isinstance(query["queue"], str):
-                    size_by_queues[query["queue"]] = ret["n"]
+                    size_by_queues[query["queue"]] = ret.modified_count
             set_queues_size(size_by_queues, action="decr")
 
             # Special case when emptying just by queue name: empty it directly!
@@ -151,9 +151,9 @@ class JobAction(Task):
                     if action == "requeue":
                         updates["retry_count"] = 0
 
-                    self.collection.update({
+                    self.collection.update_many({
                         "_id": {"$in": jobs_by_queue[queue]}
-                    }, {"$set": updates}, multi=True)
+                    }, {"$set": updates})
 
                 set_queues_size({queue: len(jobs) for queue, jobs in jobs_by_queue.items()})
 

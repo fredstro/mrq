@@ -78,7 +78,7 @@ def patch_pymongo(config):
                     comment = {"worker": worker.id}
 
                 # Tag potentially expensive queries with their job id for easier debugging
-                if method in ["find", "find_and_modify", "count", "update_many", "update", "delete_many"]:
+                if method in ["find", "find_one_and_update", "count", "update_many", "update", "delete_many"]:
                     if len(args) > 0 and isinstance(args[0], dict) and "$comment" not in args[0]:
                         query = copy.copy(args[0])
                         query["$comment"] = comment
@@ -148,7 +148,7 @@ def patch_pymongo(config):
         "insert", "insert_one", "insert_many",
         "replace_one",
         "remove", "delete_one", "delete_many",
-        "find_and_modify",
+        "find_one_and_update",
         "parallel_scan",
         "options",
         "aggregate",

@@ -91,17 +91,16 @@ class Agent(Process):
                 time.sleep(self.config["report_interval"])
 
     def manage(self):
-
         report = self.get_agent_report()
 
         try:
-            db = connections.mongodb_jobs.mrq_agents.find_and_modify({
+            db = connections.mongodb_jobs.mrq_agents.find_one_and_update({
                 "_id": ObjectId(self.id)
             }, {"$set": report}, upsert=True)
             if not db:
                 return
         except Exception as e:  # pylint: disable=broad-except
-            log.debug("Agent report failed: %s" % e)
+            log.error("Agent report failed: %s" % e)
             return
 
         # If the desired_workers was changed by an orchestrator, apply the changes locally

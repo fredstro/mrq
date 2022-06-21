@@ -64,7 +64,7 @@ class MongoHandler(logging.Handler):
 
         if collection == "1":
             self.collection = connections.mongodb_logs.mrq_logs
-        if self.collection and self.mongodb_logs_size:
+        if self.collection is not None and self.mongodb_logs_size:
             if "mrq_logs" in connections.mongodb_logs.list_collection_names() and not self.collection.options().get("capped"):
                 connections.mongodb_logs.command({"convertToCapped": "mrq_logs", "size": self.mongodb_logs_size})
             elif "mrq_logs" not in connections.mongodb_logs.list_collection_names():
@@ -81,7 +81,7 @@ class MongoHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = self.format(record)
-        if self.collection is False:
+        if self.collection is None:
             return
         log_entry = _decode_if_str(log_entry)
 
@@ -95,7 +95,7 @@ class MongoHandler(logging.Handler):
 
     def flush(self):
         # We may log some stuff before we are even connected to Mongo!
-        if not self.collection:
+        if self.collection is None:
             return
 
         inserts = [{
@@ -111,7 +111,7 @@ class MongoHandler(logging.Handler):
         self.reset()
 
         try:
-            self.collection.insert(inserts)
+            self.collection.insert_many(inserts)
         except Exception as e:  # pylint: disable=broad-except
             from mrq.context import get_current_worker
             worker = get_current_worker()

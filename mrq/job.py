@@ -112,7 +112,7 @@ class Job(object):
 
         if start:
             self.datestarted = datetime.datetime.utcnow()
-            self.set_data(self.collection.find_and_modify(
+            self.set_data(self.collection.find_one_and_update(
                 {
                     "_id": self.id,
                     "status": {"$nin": ["cancel", "abort", "maxretries"]}
@@ -180,7 +180,7 @@ class Job(object):
 
         if not self.saved and self.data and "progress" in self.data:
             # TODO should we save more fields?
-            self.collection.update({"_id": self.id}, {"$set": {
+            self.collection.update_one({"_id": self.id}, {"$set": {
                 "progress": self.data["progress"]
             }})
             self.saved = True
@@ -202,7 +202,6 @@ class Job(object):
             inserted = context.connections.mongodb_jobs.mrq_jobs.insert_many(
                 jobs_data
             )
-
         if return_jobs:
             jobs = []
             for data in jobs_data:
@@ -421,7 +420,7 @@ class Job(object):
         if worker:
             new_history["worker"] = worker.id
         new_history["traceback"] = traces[0]
-        self.collection.update({
+        self.collection.update_one({
             "_id": self.id
         }, {"$push": {"traceback_history": new_history}})
 

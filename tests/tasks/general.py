@@ -107,7 +107,7 @@ class Retry(Task):
         log.info("Retrying in %s on %s" %
                  (params.get("delay"), params.get("queue")))
 
-        connections.mongodb_jobs.tests_inserts.insert(params)
+        connections.mongodb_jobs.tests_inserts.insert_one(params)
 
         retry_current_job(
             queue=params.get("queue"),
@@ -129,7 +129,7 @@ class RetryOnFailed(Task):
         log.info("Retrying in %s on %s" %
                  (params.get("delay"), params.get("queue")))
 
-        connections.mongodb_jobs.tests_inserts.insert(params)
+        connections.mongodb_jobs.tests_inserts.insert_one(params)
         try:
             raise InRetryException
         except InRetryException:
@@ -161,7 +161,7 @@ class WaitForFlag(Task):
 class RetrySimple(Task):
 
     def run(self, params):
-        connections.mongodb_jobs.tests_inserts.insert(params)
+        connections.mongodb_jobs.tests_inserts.insert_one(params)
 
         retry_current_job()
 
@@ -193,7 +193,7 @@ class AbortOnFailed(Task):
 
         log.info("Will abort this task")
 
-        connections.mongodb_jobs.tests_inserts.insert(params)
+        connections.mongodb_jobs.tests_inserts.insert_one(params)
         try:
             raise InAbortException
         except InAbortException:
@@ -236,7 +236,7 @@ class MongoInsert(Task):
 
     def run(self, params):
 
-        connections.mongodb_jobs.tests_inserts.insert(
+        connections.mongodb_jobs.tests_inserts.insert_one(
             {"params": params})
 
         if params.get("sleep", 0) > 0:

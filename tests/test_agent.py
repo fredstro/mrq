@@ -134,16 +134,17 @@ def test_agent_process(worker):
 
     assert len(agents) == 1
 
-    assert connections.mongodb_jobs.mrq_workers.count() == 0
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 0
 
     connections.mongodb_jobs.mrq_workergroups.insert_one({
         "_id": "xxx",
         "commands": ["TEST_ENVVAR='&42' mrq-worker a --report_interval=1"]
     })
-
     time.sleep(7)
-
-    assert connections.mongodb_jobs.mrq_workers.count() == 1
+    from mrq.context import log
+    # assert 1 == f"ERROR: db={worker.cmdline} {connections.mongodb_jobs.mrq_workergroups.find_one()}"
+    log.error(f"ERROR: db={connections.mongodb_jobs.mrq_workers}")
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 1
     w = connections.mongodb_jobs.mrq_workers.find_one()
     assert w["status"] in ("spawn", "wait")
 
@@ -158,18 +159,18 @@ def test_agent_process(worker):
     w = connections.mongodb_jobs.mrq_workers.find_one()
     assert w["status"] == "stop"
 
-    assert connections.mongodb_jobs.mrq_agents.count({"status": {"$ne": "stop"}}) == 1
+    assert connections.mongodb_jobs.mrq_agents.count_documents({"status": {"$ne": "stop"}}) == 1
 
     worker.stop(deps=False)
 
     time.sleep(2)
 
-    assert connections.mongodb_jobs.mrq_agents.count({"status": {"$ne": "stop"}}) == 0
+    assert connections.mongodb_jobs.mrq_agents.count_documents({"status": {"$ne": "stop"}}) == 0
 
     worker.stop_deps()
 
 
-@pytest.mark.skipif("True")
+# @pytest.mark.skipif("True")
 def test_agent_autoscaling(worker):
 
     worker.start(agent=True, flags="--worker_group xxx --total_memory=500 --total_cpu=500 --orchestrate_interval=1 --report_interval=1  --autoscaling_taskpath tests.tasks.agent.Autoscale")
@@ -188,7 +189,7 @@ def test_agent_autoscaling(worker):
 
     time.sleep(5)
 
-    assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn"]}}) == 1
+    assert connections.mongodb_jobs.mrq_workers.count_documents({"status": {"$in": ["wait", "spawn"]}}) == 1
     assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 1
 
     # Inserted by the autoscaling task
@@ -210,7 +211,7 @@ def test_agent_autoscaling(worker):
 
     # Should have scaled to 2
     assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 2
-    assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn", "full"]}}) == 2
+    assert connections.mongodb_jobs.mrq_workers.count_documents({"status": {"$in": ["wait", "spawn", "full"]}}) == 2
 
     # Now send 10 of them - this should be too much but we should obey the max of 3 workers.
     for i in range(10):
@@ -219,7 +220,7 @@ def test_agent_autoscaling(worker):
         time.sleep(1)
 
     assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 3
-    assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn", "full"]}}) == 3
+    assert connections.mongodb_jobs.mrq_workers.count_documents({"status": {"$in": ["wait", "spawn", "full"]}}) == 3
 
     # Kill all jobs
     assert connections.mongodb_jobs.mrq_jobs.update_many({}, {"$set": {"status": "cancel"}})
@@ -227,7 +228,7 @@ def test_agent_autoscaling(worker):
     time.sleep(40)
 
     # We should be back to 1 or 2
-    assert connections.mongodb_jobs.mrq_workers.count({"status": {"$in": ["wait", "spawn", "full"]}}) < 3
+    assert connections.mongodb_jobs.mrq_workers.count_documents({"status": {"$in": ["wait", "spawn", "full"]}}) < 3
 
 
 def test_agent_force_terminate(worker):

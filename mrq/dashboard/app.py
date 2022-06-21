@@ -146,7 +146,7 @@ def post_workergroups():
     # delete groups that are not present any more
     for k in current:
         if k not in workergroups:
-            collection.remove({"_id": k})
+            collection.delete_one({"_id": k})
 
     # upsert groups
     for k, v in workergroups.iteritems():

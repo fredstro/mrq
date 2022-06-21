@@ -88,7 +88,7 @@ def test_cancel_by_path(worker, p_query):
     assert Queue("q1").size() == 0
     assert Queue("q2").size() == 0
 
-    worker.mongodb_jobs.tests_inserts.remove({})
+    worker.mongodb_jobs.tests_inserts.delete_many({})
 
     # Then requeue the same jobs
     params = {
@@ -140,14 +140,14 @@ def test_cleaning_jobs(worker):
         worker.send_task("tests.tasks.general.MongoInsert", {"a": 43}, block=False, queue=qname)
         worker.send_task("tests.tasks.general.MongoInsert", {"a": 43}, block=False, queue=qname)
 
-        assert worker.mongodb_jobs.mrq_jobs.count({"status": "queued"}) == val1
+        assert worker.mongodb_jobs.mrq_jobs.count_documents({"status": "queued"}) == val1
 
         worker.stop(deps=False)
 
         worker.start(queues="testMrq", deps=False)
         worker.wait_for_idle()
 
-        assert worker.mongodb_jobs.mrq_jobs.count({"status": "queued"}) == val2
+        assert worker.mongodb_jobs.mrq_jobs.count_documents({"status": "queued"}) == val2
         worker.stop(deps=True)
 
     # Test action: cancel
@@ -163,5 +163,5 @@ def test_cleaning_jobs(worker):
     worker.start()
     worker.send_task("mrq.basetasks.utils.JobAction", {}, block=False)
     worker.wait_for_idle()
-    assert worker.mongodb_jobs.mrq_jobs.count({"status": "queued"}) == 0
+    assert worker.mongodb_jobs.mrq_jobs.count_documents({"status": "queued"}) == 0
     worker.stop(deps=True)

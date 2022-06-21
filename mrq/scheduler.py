@@ -52,7 +52,7 @@ class Scheduler(object):
             if tasks_by_hash.get(task["hash"]):
                 del tasks_by_hash[task["hash"]]
             else:
-                self.collection.remove({"_id": task["_id"]})
+                self.collection.delete_one({"_id": task["_id"]})
                 log.debug("Scheduler: deleted %s" % task["hash"])
 
         # What remains are the new ones to be inserted
@@ -120,7 +120,7 @@ class Scheduler(object):
                 queue=task.get("queue")
             )
 
-            self.collection.update({"_id": task["_id"]}, {"$set": {
+            self.collection.update_one({"_id": task["_id"]}, {"$set": {
                 "datelastqueued": now
             }})
 

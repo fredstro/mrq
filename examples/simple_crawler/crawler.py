@@ -25,7 +25,7 @@ class Fetch(Task):
 
         # Store redirects
         if response.url != params["url"]:
-            collection.update({"_id": params["url"]}, {"$set": {
+            collection.update_one({"_id": params["url"]}, {"$set": {
                 "redirected_to": response.url,
                 "fetched_date": datetime.datetime.now()
             }})
@@ -54,7 +54,7 @@ class Fetch(Task):
             # We don't want to re-queue URLs twice. If we try to insert a duplicate,
             # pymongo will throw an error
             try:
-                collection.insert({"_id": link})
+                collection.insert_one({"_id": link})
             except:
                 continue
 
@@ -71,7 +71,7 @@ class Fetch(Task):
             "fetched_date": datetime.datetime.now()
         }
 
-        collection.update(
+        collection.update_one(
             {"_id": response.url},
             stored_data,
             upsert=True
@@ -104,6 +104,6 @@ class Reset(Task):
 
         collection = connections.mongodb_jobs.simple_crawler_urls
 
-        collection.remove({})
+        collection.delete_many({})
 
         Queue("crawl").empty()

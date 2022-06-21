@@ -93,7 +93,7 @@ def test_memoryleaks_1mleak(worker):
     # Send it once to add to imports
     get_diff_after_jobs(worker, 10, 0)
 
-    worker.mongodb_jobs.mrq_jobs.remove()
+    worker.mongodb_jobs.mrq_jobs.delete_many({})
 
     # 1M leak!
     # sleep is needed so that psutil measurements are accurate :-/

@@ -110,13 +110,13 @@ def test_raw_set(worker, has_subqueue, p_queue, p_set):
 
     if p_set:
         assert jobs_collection.count_documents({}) == 3
-        assert jobs_collection.count({"status": "success"}) == 3
+        assert jobs_collection.count_documents({"status": "success"}) == 3
 
         assert test_collection.count_documents({}) == 3
 
     else:
         assert jobs_collection.count_documents({}) == 4
-        assert jobs_collection.count({"status": "success"}) == 4
+        assert jobs_collection.count_documents({"status": "success"}) == 4
 
         assert test_collection.count_documents({}) == 4
 
@@ -133,15 +133,15 @@ def test_raw_started(worker):
     assert jobs_collection.count_documents({"status": "started", "queue": "teststartedx"}) == 2
     assert jobs_collection.count_documents({}) == 2
 
-    worker.mongodb_jobs.tests_flags.insert({"flag": "f1"})
+    worker.mongodb_jobs.tests_flags.insert_one({"flag": "f1"})
     time.sleep(1)
 
     assert jobs_collection.count_documents({"status": "success", "queue": "teststartedx"}) == 1
     assert jobs_collection.count_documents({"status": "started", "queue": "teststartedx"}) == 2
     assert jobs_collection.count_documents({}) == 3
 
-    worker.mongodb_jobs.tests_flags.insert({"flag": "f2"})
-    worker.mongodb_jobs.tests_flags.insert({"flag": "f3"})
+    worker.mongodb_jobs.tests_flags.insert_one({"flag": "f2"})
+    worker.mongodb_jobs.tests_flags.insert_one({"flag": "f3"})
     time.sleep(1)
 
     worker.stop(block=True, deps=False)
@@ -320,7 +320,7 @@ def test_raw_no_storage(worker):
     # No success either, but we did insert
     assert test_collection.count_documents({}) == 1
     assert jobs_collection.count_documents({}) == 0
-    test_collection.remove({})
+    test_collection.delete_many({})
 
     # However failed tasks get stored.
 
@@ -331,29 +331,29 @@ def test_raw_no_storage(worker):
     time.sleep(2)
 
     # Failed was inserted.
-    assert jobs_collection.count({"status": "failed", "path": "tests.tasks.general.RaiseException"}) == 1
+    assert jobs_collection.count_documents({"status": "failed", "path": "tests.tasks.general.RaiseException"}) == 1
 
     # If we requeue and don't raise, should be OK and inserted this time, even in success
     # no_storage depends on a raw queue, not a task path.
     _id = jobs_collection.find_one()["_id"]
-    jobs_collection.update({"_id": _id}, {"$set": {"path": "tests.tasks.general.MongoInsert"}})
+    jobs_collection.update_one({"_id": _id}, {"$set": {"path": "tests.tasks.general.MongoInsert"}})
     job = Job(_id).fetch(full_data=True)
     job.requeue(queue="default")
 
     time.sleep(1)
     assert test_collection.count_documents({}) == 1
     assert jobs_collection.count_documents({}) == 1
-    assert jobs_collection.count({"status": "success"}) == 1
+    assert jobs_collection.count_documents({"status": "success"}) == 1
 
-    jobs_collection.remove({})
+    jobs_collection.delete_many({})
 
     # Test with retry: should be inserted
     worker.send_raw_tasks("testnostorage_raw", [
         "tests.tasks.general.Retry 0"
     ], block=False)
 
-    assert jobs_collection.count({"status": "started"}) == 0
+    assert jobs_collection.count_documents({"status": "started"}) == 0
 
     time.sleep(2)
 
-    assert jobs_collection.count({"status": "retry"}) == 1
+    assert jobs_collection.count_documents({"status": "retry"}) == 1

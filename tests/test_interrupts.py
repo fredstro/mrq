@@ -188,7 +188,7 @@ def test_interrupt_worker_sigkill(worker, p_flags):
     # Then try the cleaning task that requeues started jobs
 
     # We need to fake the datestarted
-    worker.mongodb_jobs.mrq_jobs.update({"_id": ObjectId(job_id)}, {"$set": {
+    worker.mongodb_jobs.mrq_jobs.update_one({"_id": ObjectId(job_id)}, {"$set": {
         "datestarted": datetime.datetime.utcnow() - datetime.timedelta(seconds=300)
     }})
 

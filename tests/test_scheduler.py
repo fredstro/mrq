@@ -42,7 +42,7 @@ def test_scheduler_simple(worker, p_flags):
 
     worker.stop(deps=False)
 
-    collection.remove({})
+    collection.delete_many({})
 
     scheduled_jobs.update_many({}, {"$set": {"datelastqueued": datetime.datetime.utcnow() + datetime.timedelta(seconds=10)}})
 
@@ -128,7 +128,7 @@ def test_scheduler_dailytime_with_datelastqueued(worker):
     assert len(list(worker.mongodb_jobs.tests_inserts.find())) == 2
     # pretend first run was yesterday at time(now) + 200s
     datelastqueued = datetime.datetime.fromtimestamp(now - 3600*24 + 200)
-    worker.mongodb_jobs.mrq_scheduled_jobs.update({"params.b": "test"}, {"$set": {'datelastqueued': datelastqueued}})
+    worker.mongodb_jobs.mrq_scheduled_jobs.update_one({"params.b": "test"}, {"$set": {'datelastqueued': datelastqueued}})
     time.sleep(3)
     # task is ran
     assert len(list(worker.mongodb_jobs.tests_inserts.find())) == 3

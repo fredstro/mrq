@@ -23,8 +23,8 @@ def test_io_hooks_nothing(worker):
     assert job_events[0]["hook"] == "mongodb_pre"
     assert job_events[1]["hook"] == "mongodb_post"
 
-    assert job_events[0]["method"] == "update"
-    assert job_events[1]["method"] == "update"
+    assert job_events[0]["method"] == "update_one"
+    assert job_events[1]["method"] == "update_one"
 
     assert job_events[0]["collection"] == "mrq.mrq_jobs"
     assert job_events[1]["collection"] == "mrq.mrq_jobs"
@@ -63,8 +63,8 @@ def test_io_hooks_redis(worker):
     assert job_events[2]["hook"] == "mongodb_pre"
     assert job_events[3]["hook"] == "mongodb_post"
 
-    assert job_events[2]["method"] == "update"
-    assert job_events[3]["method"] == "update"
+    assert job_events[2]["method"] == "update_one"
+    assert job_events[3]["method"] == "update_one"
 
     assert job_events[2]["collection"] == "mrq.mrq_jobs"
     assert job_events[3]["collection"] == "mrq.mrq_jobs"
@@ -144,8 +144,8 @@ def test_io_hooks_mongodb(worker):
     assert job_events[10]["hook"] == "mongodb_pre"
     assert job_events[11]["hook"] == "mongodb_post"
 
-    assert job_events[10]["method"] == "update"
-    assert job_events[11]["method"] == "update"
+    assert job_events[10]["method"] == "update_one"
+    assert job_events[11]["method"] == "update_one"
 
     assert job_events[10]["collection"] == "mrq.mrq_jobs"
     assert job_events[11]["collection"] == "mrq.mrq_jobs"
