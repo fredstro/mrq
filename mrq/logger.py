@@ -109,9 +109,13 @@ class MongoHandler(logging.Handler):
         try:
             self.collection.insert_many(inserts)
         except Exception as e:  # pylint: disable=broad-except
-            from mrq.context import get_current_worker
+            from mrq.context import get_current_worker, log
             worker = get_current_worker()
             if not worker is None:
                 worker = worker.id
-            self.log("debug", "Log insert failed: %s" % e, worker=worker)
-            self.emit("Log insert failed: %s" % e)
+            log_record = logging.makeLogRecord(
+                {"level": logging.ERROR,
+                 "msg": "Log insert failed %s",
+                 "args": e})
+            self.emit(log_record)
+            log.debug(f"Log insert failed:{e}, worker: {worker}")
