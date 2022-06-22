@@ -174,6 +174,10 @@ def test_agent_process(worker):
 def test_agent_autoscaling(worker):
 
     worker.start(agent=True, flags="--worker_group xxx --total_memory=500 --total_cpu=500 --orchestrate_interval=1 --report_interval=1  --autoscaling_taskpath tests.tasks.agent.Autoscale")
+    time.sleep(3)
+    agents = list(connections.mongodb_jobs.mrq_agents.find())
+    assert len(agents) == 1
+    assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 0
 
     connections.mongodb_jobs.mrq_workergroups.insert_one({"_id": "xxx", "profiles": {
         "a": {
