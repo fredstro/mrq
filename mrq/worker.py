@@ -213,7 +213,7 @@ class Worker(Process):
 
     def get_paused_queues(self):
         """ Returns the set of currently paused queues """
-        return {q.decode("utf-8") for q in self.redis.smembers(redis_key("paused_queues"))}
+        return {q for q in self.redis.smembers(redis_key("paused_queues"))}
 
     def greenlet_paused_queues(self):
 
@@ -308,7 +308,7 @@ class Worker(Process):
         io = None
         if self._traced_io:
             io = {}
-            for k, v in iteritems(self._traced_io):
+            for k, v in self._traced_io.items():
                 if k == "total":
                     io[k] = v
                 else:
@@ -357,12 +357,11 @@ class Worker(Process):
             del report["_id"]
 
         try:
-
-            self.mongodb_jobs.mrq_workers.update({
+            self.mongodb_jobs.mrq_workers.update_one({
                 "_id": ObjectId(self.id)
-            }, {"$set": report}, upsert=True, w=w)
+            }, {"$set": report}, upsert=True)
         except Exception as e:  # pylint: disable=broad-except
-            self.log.debug("Worker report failed: %s" % e)
+            self.log.error("Worker report failed: %s" % e)
 
     def greenlet_timeouts(self):
         """ This greenlet kills jobs in other greenlets if they timeout.

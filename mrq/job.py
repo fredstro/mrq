@@ -525,9 +525,9 @@ class Job(object):
             self.stored = True
 
         else:
-            self.collection.update({
+            self.collection.update_one({
                 "_id": self.id
-            }, {"$set": db_updates}, w=w, j=j, manipulate=False)
+            }, {"$set": db_updates})
 
         if exception:
             self._save_traceback_history(status, trace, exc)
@@ -536,6 +536,8 @@ class Job(object):
             with context.connections.redis.pipeline(transaction=False) as pipe:
                 if status != "started":
                     # Queue change
+                    print("old status,new status=",old_status,status)
+                    print("db updates=",db_updates)
                     if current_queue != old_queue:
                         pipe.decr("queuesize:%s" % old_queue)
                         if status == "queued":
@@ -638,12 +640,11 @@ class Job(object):
 
         # We need to update it later than the results, we need them off memory
         # already.
-        self.collection.update(
+        self.collection.update_one(
             {"_id": self.id},
             {"$set": {
                 "memory_diff": diff
-            }},
-            w=1
+            }}
         )
 
 
@@ -690,11 +691,9 @@ def queue_jobs(main_task_path, params_list, queue=None, batch_size=1000):
         raise Exception("Can't queue regular jobs on a raw queue")
 
     all_ids = []
-
     for params_group in group_iter(params_list, n=batch_size):
 
         context.metric("jobs.status.queued", len(params_group))
-
         # Insert the job in MongoDB
         job_ids = Job.insert([{
             "path": main_task_path,
@@ -703,7 +702,6 @@ def queue_jobs(main_task_path, params_list, queue=None, batch_size=1000):
             "datequeued": datetime.datetime.utcnow(),
             "status": "queued"
         } for params in params_group], w=1, return_jobs=False)
-
         all_ids += job_ids.inserted_ids
 
     queue_obj.notify(len(all_ids))
