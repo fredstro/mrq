@@ -229,11 +229,13 @@ class WorkerFixture(ProcessFixture):
             self.start()
 
         job_ids = queue_jobs(path, params_list, queue=queue)
-
         return self.wait_for_tasks_results(job_ids, block=block, accept_statuses=accept_statuses)
 
     def send_task(self, path, params, **kwargs):
-        return self.send_tasks(path, [params], **kwargs)[0]
+        tasks = self.send_tasks(path, [params], **kwargs)
+        if tasks:
+            return tasks[0]
+        return None
 
     def send_task_cli(self, path, params, queue=None, **kwargs):
 
