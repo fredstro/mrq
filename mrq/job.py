@@ -499,20 +499,13 @@ class Job(object):
             db_updates["exceptiontype"] = exc.__name__
 
         if self.data:
-            self.data.update(db_updates)
             # get all data before updating them
             current_queue = (db_updates or {}).get("queue") or self.data["queue"]
             old_queue = self.data.get("queue")
             old_status = self.data.get("status")
             raw_queue = self.data.get("raw_queue")
             retry_count = self.data.get("retry_count", 0)
-
-        # In the most common case, we allow an optimization on Mongo writes
-        if status == "success":
-            if w is None:
-                w = getattr(self.task, "status_success_update_w", None)
-            if j is None:
-                j = getattr(self.task, "status_success_update_j", None)
+            self.data.update(db_updates)
 
         # This job wasn't inserted because "started" is in statuses_no_storage
         # So we must insert it for the first time instead of updating it.
