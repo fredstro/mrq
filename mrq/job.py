@@ -367,12 +367,15 @@ class Job(object):
         current_greenletid = id(gevent.getcurrent())
 
         trace = "Job killed: %s" % reason
+        greenletids_to_remove = []
         for greenlet, job in context._GLOBAL_CONTEXT["greenlets"].values():
             greenletid = id(greenlet)
             if job and job.id == self.id and greenletid != current_greenletid:
                 greenlet.kill(block=block)
                 trace += "\n\n--- Greenlet %s ---\n" % greenletid
                 trace += "".join(traceback.format_stack(greenlet.gr_frame))
+            greenletids_to_remove.append(greenletid)
+        for greenletid in greenletids_to_remove:
             context._GLOBAL_CONTEXT["greenlets"].pop(greenletid, None)
 
         if reason == "timeout" and self.data["status"] != "timeout":
