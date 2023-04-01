@@ -1,4 +1,3 @@
-import six
 from mrq.task import Task
 from mrq.queue import Queue
 from bson import ObjectId
@@ -114,7 +113,7 @@ class JobAction(Task):
             # In this case we could also loose some jobs that were queued after
             # the MongoDB update. They will be "lost" and requeued later like the other case
             # after the Redis BLPOP
-            if list(query.keys()) == ["queue"] and isinstance(query["queue"], six.string_types):
+            if list(query.keys()) == ["queue"] and isinstance(query["queue"], str):
                 Queue(query["queue"]).empty()
 
         elif action in ("requeue", "requeue_retry"):

@@ -1,33 +1,9 @@
-import six
-
 from collections import defaultdict
 import logging
 import datetime
 import sys
 import pymongo
 PY3 = sys.version_info > (3,)
-
-
-def _encode_if_unicode(string):
-
-    if PY3:
-        return string
-
-    if isinstance(string, six.text_type):  # pylint: disable=undefined-variable
-        return string.encode("utf-8", "replace")
-    else:
-        return string
-
-
-def _decode_if_str(string):
-
-    if PY3:
-        return str(string)
-
-    if isinstance(string, str):
-        return string.decode("utf-8", "replace")
-    else:
-        return six.text_type(string)  # pylint: disable=undefined-variable
 
 
 class MongoHandler(logging.Handler):
@@ -79,7 +55,6 @@ class MongoHandler(logging.Handler):
         log_entry = self.format(record)
         if self.collection is None:
             return
-        log_entry = _decode_if_str(log_entry)
 
         if self.worker is not None:
             self.buffer["workers"][self.worker].append(log_entry)
