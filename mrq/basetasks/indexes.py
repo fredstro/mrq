@@ -14,7 +14,7 @@ class EnsureIndexes(Task):
             connections.mongodb_logs.mrq_logs.create_index(
                 [("worker", 1)], background=True, sparse=True)
 
-        connections.mongodb_jobs.mrq_workers.ensure_index(
+        connections.mongodb_jobs.mrq_workers.create_index(
             [("status", 1)], background=True)
         connections.mongodb_jobs.mrq_workers.create_index(
             [("datereported", 1)], background=True, expireAfterSeconds=3600)
