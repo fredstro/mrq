@@ -8,7 +8,7 @@ class EnsureIndexes(Task):
     def run(self, params):
         if self.created_indexes:
             return
-        if connections.mongodb_logs:
+        if connections.mongodb_logs is not None:
             connections.mongodb_logs.mrq_logs.create_index(
                 [("job", 1)], background=True)
             connections.mongodb_logs.mrq_logs.create_index(
