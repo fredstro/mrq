@@ -45,7 +45,7 @@ class Agent(Process):
     def work(self):
 
         self.install_signal_handlers()
-        self.datestarted = datetime.datetime.utcnow()
+        self.datestarted = datetime.datetime.now(datetime.UTC)
 
         self.pool.start()
         self.manage()
@@ -118,8 +118,8 @@ class Agent(Process):
             "status": self.status,
             "dateorchestrated": self.dateorchestrated,
             "datestarted": self.datestarted,
-            "datereported": datetime.datetime.utcnow(),
-            "dateexpires": datetime.datetime.utcnow() + datetime.timedelta(seconds=(self.config["report_interval"] * 3) + 5)
+            "datereported": datetime.datetime.now(datetime.UTC),
+            "dateexpires": datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=(self.config["report_interval"] * 3) + 5)
         }
         metric("agent", data={"worker_group": self.worker_group, "agent_id": self.id, "worker_count": len(self.pool.processes)})
         return report
@@ -197,7 +197,7 @@ class Agent(Process):
 
     def fetch_worker_group_definition(self):
         definition = connections.mongodb_jobs.mrq_workergroups.find_one({"_id": self.worker_group})
-
+        print("fetch def=",definition)
         # Prepend all commands by their worker profile.
         commands = []
         for command in definition.get("commands", []):

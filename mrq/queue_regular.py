@@ -113,7 +113,7 @@ class QueueRegular(Queue):
                 query,
                 {"$set": {
                     "status": "started",
-                    "datestarted": datetime.datetime.utcnow(),
+                    "datestarted": datetime.datetime.now(datetime.UTC),
                     "worker": worker.id if worker else None
                 }, "$unset": {
                     "dateexpires": 1 # we don't want started jobs to expire unexpectedly
@@ -142,7 +142,7 @@ class QueueRegular(Queue):
 
             job = job_class(job_data["_id"], queue=self.id, start=False)
             job.set_data(job_data)
-            job.datestarted = datetime.datetime.utcnow()
+            job.datestarted = datetime.datetime.now(datetime.UTC)
 
             context.metric("jobs.status.started")
 

@@ -90,7 +90,7 @@ class JobAction(Task):
 
                 result_ttl = max([default_job_timeout] + tasks_ttls)
 
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(datetime.UTC)
 
             size_by_queues = defaultdict(int)
             if "queue" not in query:
@@ -136,8 +136,8 @@ class JobAction(Task):
                 for queue in jobs_by_queue:
                     updates = {
                         "status": "queued",
-                        "datequeued": datetime.datetime.utcnow(),
-                        "dateupdated": datetime.datetime.utcnow()
+                        "datequeued": datetime.datetime.now(datetime.UTC),
+                        "dateupdated": datetime.datetime.now(datetime.UTC)
                     }
 
                     if destination_queue is not None:

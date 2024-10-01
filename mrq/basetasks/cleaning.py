@@ -28,7 +28,7 @@ class RequeueRetryJobs(Task):
     def run(self, params):
         return run_task("mrq.basetasks.utils.JobAction", {
             "status": "retry",
-            "dateretry": {"$lte": datetime.datetime.utcnow()},
+            "dateretry": {"$lte": datetime.datetime.now(datetime.UTC)},
             "action": "requeue_retry"
         })
 

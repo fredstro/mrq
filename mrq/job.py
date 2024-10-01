@@ -107,7 +107,7 @@ class Job(object):
             }
 
         if start:
-            self.datestarted = datetime.datetime.utcnow()
+            self.datestarted = datetime.datetime.now(datetime.UTC)
             self.set_data(self.collection.find_one_and_update(
                 {
                     "_id": self.id,
@@ -185,7 +185,7 @@ class Job(object):
     def insert(cls, jobs_data, queue=None, statuses_no_storage=None, return_jobs=True, w=None, j=None):
         """ Insert a job into MongoDB """
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         for data in jobs_data:
             if data["status"] == "started":
                 data["datestarted"] = now
@@ -263,7 +263,7 @@ class Job(object):
 
         self._save_status("queued", updates={
             "queue": queue,
-            "datequeued": datetime.datetime.utcnow(),
+            "datequeued": datetime.datetime.now(datetime.UTC),
             "retry_count": retry_count
         })
 
@@ -319,7 +319,7 @@ class Job(object):
 
             gevent.sleep(0)
             current_greenlet = gevent.getcurrent()
-            t = (datetime.datetime.utcnow() - self.datestarted).total_seconds()
+            t = (datetime.datetime.now(datetime.UTC) - self.datestarted).total_seconds()
 
             context.log.debug(
                 "Job %s success: %0.6fs total, %0.6fs in greenlet, %s switches" %
@@ -331,7 +331,7 @@ class Job(object):
 
         else:
             context.log.debug("Job %s success: %0.6fs total" % (
-                self.id, (datetime.datetime.utcnow() -
+                self.id, (datetime.datetime.now(datetime.UTC) -
                           self.datestarted).total_seconds()
             ))
 
@@ -393,7 +393,7 @@ class Job(object):
 
         else:
 
-            dateretry = datetime.datetime.utcnow() + datetime.timedelta(seconds=retry_exc.delay)
+            dateretry = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=retry_exc.delay)
             updates = {
                 "dateretry": dateretry,
                 "queue": retry_exc.queue,
@@ -404,7 +404,7 @@ class Job(object):
 
     def _save_traceback_history(self, status, trace, job_exc):
         """ Create traceback history or add a new traceback to history. """
-        failure_date = datetime.datetime.utcnow()
+        failure_date = datetime.datetime.now(datetime.UTC)
 
         new_history = {
             "date": failure_date,
@@ -425,7 +425,7 @@ class Job(object):
 
     def save_success(self, result=None):
 
-        dateexpires = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.result_ttl)
+        dateexpires = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=self.result_ttl)
         updates = {
             "dateexpires": dateexpires
         }
@@ -438,7 +438,7 @@ class Job(object):
 
     def save_cancel(self):
 
-        dateexpires = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.cancel_ttl)
+        dateexpires = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=self.cancel_ttl)
         updates = {
             "dateexpires": dateexpires
         }
@@ -446,7 +446,7 @@ class Job(object):
         self._save_status("cancel", updates)
 
     def save_abort(self):
-        dateexpires = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.abort_ttl)
+        dateexpires = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=self.abort_ttl)
         updates = {
             "dateexpires": dateexpires
         }
@@ -468,7 +468,7 @@ class Job(object):
         if self.stored is False and self.statuses_no_storage is not None and status in self.statuses_no_storage:
             return
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         db_updates = {
             "status": status,
             "dateupdated": now
@@ -532,8 +532,7 @@ class Job(object):
             with context.connections.redis.pipeline(transaction=False) as pipe:
                 if status != "started":
                     # Queue change
-                    print("old status,new status=",old_status,status)
-                    print("db updates=",db_updates)
+                    context.log.debug(f"db updates={db_updates}")
                     if current_queue != old_queue:
                         pipe.decr("queuesize:%s" % old_queue)
                         if status == "queued":
@@ -695,7 +694,7 @@ def queue_jobs(main_task_path, params_list, queue=None, batch_size=1000):
             "path": main_task_path,
             "params": params,
             "queue": queue,
-            "datequeued": datetime.datetime.utcnow(),
+            "datequeued": datetime.datetime.now(datetime.UTC),
             "status": "queued"
         } for params in params_group], w=1, return_jobs=False)
         all_ids += job_ids.inserted_ids

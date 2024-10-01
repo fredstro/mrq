@@ -15,8 +15,8 @@ def test_retry(worker):
 
     assert job_data["queue"] == "noexec"
     assert job_data["status"] == "retry"
-    assert job_data["dateretry"] > datetime.datetime.utcnow()
-    assert datetime.datetime.utcnow() + datetime.timedelta(days=1) < job_data["dateexpires"] < datetime.datetime.utcnow() + datetime.timedelta(days=3)
+    assert job_data["dateretry"] > datetime.datetime.now(datetime.UTC)
+    assert datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1) < job_data["dateexpires"] < datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=3)
     assert job_data.get("result") is None
 
 

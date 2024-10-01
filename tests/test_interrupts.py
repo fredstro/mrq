@@ -189,7 +189,7 @@ def test_interrupt_worker_sigkill(worker, p_flags):
 
     # We need to fake the datestarted
     worker.mongodb_jobs.mrq_jobs.update_one({"_id": ObjectId(job_id)}, {"$set": {
-        "datestarted": datetime.datetime.utcnow() - datetime.timedelta(seconds=300)
+        "datestarted": datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=300)
     }})
 
     assert Queue("default").size() == 1

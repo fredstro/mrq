@@ -59,7 +59,7 @@ def main():
             "params": params,
             "queue": cfg["queue"]
         })
-        job.datestarted = datetime.datetime.utcnow()
+        job.datestarted = datetime.datetime.now(datetime.UTC)
         set_current_job(job)
         ret = job.perform()
         print(json_stdlib.dumps(ret, cls=MongoJSONEncoder))  # pylint: disable=no-member

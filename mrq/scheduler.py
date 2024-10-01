@@ -62,12 +62,12 @@ class Scheduler(object):
                 # we add today's date to the dailytime.
                 # The date part will be discarded in check()
                 task["dailytime"] = datetime.datetime.combine(
-                    datetime.datetime.utcnow(), task["dailytime"])
+                    datetime.datetime.now(datetime.UTC), task["dailytime"])
                 task["interval"] = 3600 * 24
 
                 # Avoid to queue task in check() if today dailytime is already passed
-                if datetime.datetime.utcnow().time() > task["dailytime"].time():
-                    task["datelastqueued"] = datetime.datetime.utcnow()
+                if datetime.datetime.now(datetime.UTC).time() > task["dailytime"].time():
+                    task["datelastqueued"] = datetime.datetime.now(datetime.UTC)
 
             self.collection.find_one_and_update({"hash": task["hash"]}, {"$set": task}, upsert=True)
             log.debug("Scheduler: added %s" % task["hash"])
@@ -86,7 +86,7 @@ class Scheduler(object):
         #     len(self.all_tasks)
         # )
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         current_weekday = now.weekday()
         current_monthday = now.day
 

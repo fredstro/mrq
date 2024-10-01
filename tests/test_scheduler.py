@@ -44,7 +44,7 @@ def test_scheduler_simple(worker, p_flags):
 
     collection.delete_many({})
 
-    scheduled_jobs.update_many({}, {"$set": {"datelastqueued": datetime.datetime.utcnow() + datetime.timedelta(seconds=10)}})
+    scheduled_jobs.update_many({}, {"$set": {"datelastqueued": datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=10)}})
 
     # Start with new config
     worker.start(
@@ -155,14 +155,14 @@ def test_scheduler_weekday_dailytime(worker):
     inserts = list(collection.find())
     assert len(inserts) == 1
     print(inserts)
-    assert collection.count_documents({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}) == 1
+    assert collection.count_documents({"params.weekday": datetime.datetime.now(datetime.UTC).weekday(), "params.later": False}) == 1
 
     # more time passes and we do nothing
     time.sleep(7)
     inserts = list(collection.find())
     assert len(inserts) == 1
     print(inserts)
-    assert collection.count_documents({"params.weekday": datetime.datetime.utcnow().weekday(), "params.later": False}) == 1
+    assert collection.count_documents({"params.weekday": datetime.datetime.now(datetime.UTC).weekday(), "params.later": False}) == 1
 
 
 def test_scheduler_monthday(worker):
@@ -186,7 +186,7 @@ def test_scheduler_monthday(worker):
     time.sleep(10)
     inserts = list(collection.find())
     assert len(inserts) == 1
-    assert collection.count_documents({"params.monthday": datetime.datetime.utcnow().day}) == 1
+    assert collection.count_documents({"params.monthday": datetime.datetime.now(datetime.UTC).day}) == 1
 
 
 def test_scheduler_noparams(worker):

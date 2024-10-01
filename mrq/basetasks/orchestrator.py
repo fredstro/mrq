@@ -60,7 +60,7 @@ class Orchestrate(Task):
                 }})
 
         # Remember the date of the last successful orchestration (will be reported)
-        self.dateorchestrated = datetime.datetime.utcnow()
+        self.dateorchestrated = datetime.datetime.now(datetime.UTC)
 
         log.debug("Orchestration finished.")
 

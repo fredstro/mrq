@@ -143,7 +143,6 @@ def test_agent_process(worker):
     time.sleep(7)
     from mrq.context import log
     # assert 1 == f"ERROR: db={worker.cmdline} {connections.mongodb_jobs.mrq_workergroups.find_one()}"
-    log.error(f"ERROR: db={connections.mongodb_jobs.mrq_workers}")
     assert connections.mongodb_jobs.mrq_workers.count_documents({}) == 1
     w = connections.mongodb_jobs.mrq_workers.find_one()
     assert w["status"] in ("spawn", "wait")

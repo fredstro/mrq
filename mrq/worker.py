@@ -52,7 +52,7 @@ class Worker(Process):
         if self.config.get("trace_greenlets"):
             enable_greenlet_tracing()
 
-        self.datestarted = datetime.datetime.utcnow()
+        self.datestarted = datetime.datetime.now(datetime.UTC)
 
         self.done_jobs = 0
         self.max_jobs = self.config["max_jobs"]
@@ -323,7 +323,7 @@ class Worker(Process):
             "done_jobs": self.done_jobs,
             "usage_avg": used_avg / self.pool_size,
             "datestarted": self.datestarted,
-            "datereported": datetime.datetime.utcnow(),
+            "datereported": datetime.datetime.now(datetime.UTC),
             "name": self.name,
             "io": io,
             "_id": str(self.id),
@@ -368,7 +368,7 @@ class Worker(Process):
         """
 
         while True:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(datetime.UTC)
             for greenlet in list(self.gevent_pool):
                 job = get_current_job(id(greenlet))
                 if job and job.timeout and job.datestarted:
@@ -495,7 +495,7 @@ class Worker(Process):
     def work_loop(self, max_jobs=None, max_time=None):
 
         self.done_jobs = 0
-        self.datestarted_work_loop = datetime.datetime.utcnow()
+        self.datestarted_work_loop = datetime.datetime.now(datetime.UTC)
         self.queue_offset = 0
 
         try:
@@ -515,7 +515,7 @@ class Worker(Process):
                 while True:
 
                     # we put this here to make sure we have a strict limit on max_time
-                    if max_time and datetime.datetime.utcnow() - self.datestarted >= max_time:
+                    if max_time and datetime.datetime.now(datetime.UTC) - self.datestarted >= max_time:
                         self.log.info("Reached max_time=%s" % max_time.seconds)
                         max_time_reached = True
                         break
@@ -564,7 +564,7 @@ class Worker(Process):
             except StopRequested:
                 pass
 
-        self.datestopped_work_loop = datetime.datetime.utcnow()
+        self.datestopped_work_loop = datetime.datetime.now(datetime.UTC)
         lifetime = self.datestopped_work_loop - self.datestarted_work_loop
         job_rate = float(self.done_jobs) / lifetime.total_seconds()
         self.log.info("Worker spent %.3f seconds performing %s jobs (%.3f jobs/second)" % (
