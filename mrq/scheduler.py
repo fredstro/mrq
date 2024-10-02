@@ -111,7 +111,7 @@ class Scheduler(object):
 
             # if we only have "interval" key
             if all(k not in task for k in ["monthday", "weekday", "dailytime"]):
-                if now - task["datelastqueued"] < interval:
+                if now.astimezone(timezone('UTC')) - task["datelastqueued"].astimezone(timezone('UTC')) < interval:
                     continue
 
             queue_job(
