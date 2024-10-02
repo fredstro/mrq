@@ -96,7 +96,7 @@ class Scheduler(object):
 
             interval = datetime.timedelta(seconds=task["interval"])
 
-            if task["datelastqueued"] >= now:
+            if task["datelastqueued"].astimezone(timezone('UTC')) >= now.astimezone(timezone('UTC')):
                 continue
 
             if task.get("monthday", current_monthday) != current_monthday:
