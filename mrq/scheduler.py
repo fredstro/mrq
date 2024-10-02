@@ -1,3 +1,5 @@
+from pytz import timezone
+
 from .context import log, queue_job
 import datetime
 import ujson as json
@@ -56,7 +58,7 @@ class Scheduler(object):
         # What remains are the new ones to be inserted
         for h, task in tasks_by_hash.items():
             task["hash"] = h
-            task["datelastqueued"] = datetime.datetime.fromtimestamp(0)
+            task["datelastqueued"] = datetime.datetime.fromtimestamp(0).astimezone(timezone('UTC'))
             if task.get("dailytime"):
                 # Because MongoDB can store datetimes but not times,
                 # we add today's date to the dailytime.
