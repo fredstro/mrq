@@ -18,7 +18,9 @@ except ImportError:
     # Change name to avoid NameError raised when use of LuaLock at line 151
     from redis.lock import Lock as LuaLock
     
+from redis.exceptions import LockError
 from collections import defaultdict
+from .dependency_retry import retry_mongo_selection
 from mrq.utils import load_class_by_path
 
 from .job import Job
@@ -84,7 +86,7 @@ class Worker(Process):
 
         self.set_logger()
 
-        self.refresh_queues(fatal=True)
+        retry_mongo_selection(lambda: self.refresh_queues(fatal=True), self.log)
         self.queues_with_notify = list({redis_key("notify", q) for q in self.queues if q.use_notify()})
         self.has_subqueues = any([queue.endswith("/") for queue in self.config["queues"]])
 
@@ -106,7 +108,8 @@ class Worker(Process):
         }
 
         if self.config["ensure_indexes"]:
-            run_task("mrq.basetasks.indexes.EnsureIndexes", {})
+            retry_mongo_selection(
+                lambda: run_task("mrq.basetasks.indexes.EnsureIndexes", {}), self.log)
 
     def set_logger(self):
         import logging
@@ -144,10 +147,24 @@ class Worker(Process):
 
         redis_scheduler_lock_key = "%s:schedulerlock" % get_current_config()["redis_prefix"]
         while True:
-            with LuaLock(connections.redis, redis_scheduler_lock_key,
-                         timeout=self.config["scheduler_interval"] + 10, blocking=False, thread_local=False):
-                self.scheduler.check()
-
+            lock = LuaLock(connections.redis, redis_scheduler_lock_key,
+                           timeout=max(180, self.config["scheduler_interval"] + 10),
+                           blocking=False, thread_local=False)
+            acquired = False
+            try:
+                # Contention is normal with multiple workers, not a reason to
+                # kill this worker and interrupt its unrelated running jobs.
+                acquired = lock.acquire(blocking=False)
+                if acquired:
+                    self.scheduler.check()
+            except LockError:
+                self.log.warning("Scheduler lock unavailable; deferring this tick")
+            finally:
+                if acquired:
+                    try:
+                        lock.release()
+                    except LockError:
+                        self.log.warning("Scheduler lease expired before release")
             time.sleep(self.config["scheduler_interval"])
 
     def greenlet_report(self):
